@@ -2,6 +2,7 @@
 
 !.gitignore
 !main.js
+!styles.css
 !README.md
 !LICENSE
 !manifest.json
