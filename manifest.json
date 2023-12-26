@@ -1,5 +1,10 @@
 {
     "manifest_version": 3,
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "better-web-orioks"
+        }
+    },
     "name": "Better web-ORIOKS",
     "version": "1.0.1",
     "description": "Улучшение веб-версии ОРИОКС: изменение подсчёта баллов и местами дизайна, а также добавление/доработка расписания",
