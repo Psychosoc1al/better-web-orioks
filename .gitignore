@@ -1,11 +1,15 @@
 *
 
 !.gitignore
-!main.js
-!styles.css
 !README.md
 !LICENSE
 !manifest.json
+
+!content_scripts
+!content_scripts/*.js
+
+!styles
+!styles/styles.css
 
 !icons
 !icons/*.png
