@@ -1,16 +1,18 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Better web-ORIOKS",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Улучшение веб-версии ОРИОКС: изменение подсчёта баллов и местами дизайна, а также добавление/доработка расписания",
+    "icons": {
+        "48": "icons/icon-48.png",
+        "96": "icons/icon-96.png"
+    },
     "content_scripts": [
         {
-            "matches": [
-                "https://orioks.miet.ru/*"
-            ],
-            "js": [
-                "main.js"
-            ]
+            "matches": ["https://orioks.miet.ru/*"],
+            "js": ["main.js"],
+            "css": ["styles.css"],
+            "run_at": "document_end"
         }
     ]
 }

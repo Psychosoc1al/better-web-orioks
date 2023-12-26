@@ -1,7 +1,10 @@
-/*
+*
 
+!.gitignore
 !main.js
 !README.md
 !LICENSE
-!.gitignore
 !manifest.json
+
+!icons
+!icons/*.png
