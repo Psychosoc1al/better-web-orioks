@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "browser_specific_settings": {
         "gecko": {
-            "id": "better-web-orioks"
+            "id": "better-web-orioks@miet.ru"
         }
     },
     "name": "Better web-ORIOKS",
