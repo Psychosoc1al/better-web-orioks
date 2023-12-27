@@ -3,3 +3,21 @@
         width: 1330px;
     }
 }
+
+tr[ng-repeat="c in data"] span {
+    white-space: pre-line;
+}
+
+.w46 {
+    width: 34px;
+}
+
+.grade,
+#bp {
+    width: 45px;
+    padding: 3px;
+}
+
+span[style="width: 60px"] {
+    width: fit-content !important;
+}

@@ -8,6 +8,9 @@
 !content_scripts
 !content_scripts/*.js
 
+!background_scripts
+!background_scripts/*.js
+
 !styles
 !styles/styles.css
 

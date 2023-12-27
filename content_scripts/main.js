@@ -1,24 +1,22 @@
+// noinspection JSUnresolvedReference
 /**
  * Save a key-value pair to the storage
  *
  * @param {string} key - The key to save
- * @param {string | Object} value - The value to save
+ * @param {Object} value - The value to save
  */
-const saveKeyValue = function (key, value) {
-    // noinspection JSUnresolvedReference
-    GM.setValue(key, value);
-};
+const saveKeyValue = (key, value) =>
+    browser.storage.local.set({ [key]: value });
 
+// noinspection JSUnresolvedReference
 /**
  * Retrieves the value associated with the given key
  *
  * @param {string} key - The key to retrieve the value for
- * @return {Promise<string>} - The value associated with the given key
+ * @return {Promise<Object>} - The value associated with the given key
  */
-const loadValueByKey = function (key) {
-    // noinspection JSUnresolvedReference,JSCheckFunctionSignatures
-    return GM.getValue(key);
-};
+const loadValueByKey = (key) =>
+    browser.storage.local.get(key).then((res) => res[key]);
 
 // check to know if we are on the page with grades
 const group = document
@@ -29,33 +27,6 @@ const weeksNumbers = {
     "1 знаменатель": 1,
     "2 числитель": 2,
     "2 знаменатель": 3,
-};
-
-/**
- * Sends a request to the schedule server
- *
- * @param {string} url - The URL to send the request to
- * @param {string} method - The request method
- * @param {string} cookie - The cookie to include in the request headers
- * @return {Promise<Object>} A promise that resolves with the response text
- */
-const sendRequest = function (url, method, cookie = "") {
-    // noinspection JSUnresolvedReference,JSUnusedGlobalSymbols
-    return GM.xmlHttpRequest({
-        url: url,
-        method: method,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Cookie: cookie,
-        },
-        data: `group=${group}`,
-        onload: function (responsePromise) {
-            return responsePromise;
-        },
-        onerror: function (response) {
-            console.log(response);
-        },
-    });
 };
 
 /**
@@ -100,76 +71,20 @@ const getGradeNameAndType = function (gradeRatio, controlForm) {
 };
 
 /**
- * Changes the size of numeric and string grade fields
- */
-const changeGradeFieldsSizes = function () {
-    for (const sheet of document.styleSheets)
-        if (
-            sheet.href?.includes(
-                "https://orioks.miet.ru/controller/student/student.css",
-            )
-        ) {
-            for (const element of sheet.cssRules) {
-                if (element.selectorText === ".w46")
-                    element.style.width = "34px";
-                if ([".grade", "#bp"].includes(element["selectorText"])) {
-                    element.style.width = "45px";
-                    element.style.padding = "3px";
-                }
-            }
-            break;
-        }
-    document.querySelector('span[style="width: 60px"]').style.width =
-        "fit-content";
-};
-
-/**
- * Sets the schedule CSS.
- */
-const setScheduleCSS = function () {
-    for (const sheet of document.styleSheets)
-        if (
-            sheet.href?.includes(
-                "https://orioks.miet.ru/libs/bootstrap/bootstrap.min.css",
-            )
-        ) {
-            for (const element of sheet.cssRules)
-                if (
-                    element.cssText.startsWith(".table") &&
-                    element.style &&
-                    element.style.marginTop
-                ) {
-                    element.style.marginTop = "5px";
-                }
-            break;
-        }
-
-    document
-        .querySelectorAll('tr[ng-repeat="c in data"] span')
-        .forEach((elem) => (elem.style["white-space"] = "pre-line"));
-};
-
-/**
  * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
  *
- * @return {Promise<Object>} A JSON object containing the schedule
+ * @return {Object} A JSON object containing the schedule
  */
-const getSchedule = function () {
-    return sendRequest("https://miet.ru/schedule/data", "POST").then(
-        (responseObject) => {
-            const cookie = responseObject.responseText.match(/wl=.*;path=\//);
-            if (cookie)
-                return sendRequest(
-                    "https://miet.ru/schedule/data",
-                    "POST",
-                    cookie[0],
-                ).then((responseObject) =>
-                    JSON.parse(responseObject.responseText),
-                );
-
-            return JSON.parse(responseObject.responseText);
-        },
-    );
+const requestSchedule = function () {
+    // noinspection JSUnresolvedVariable
+    return browser.runtime
+        .sendMessage({
+            group: group,
+        })
+        .then(
+            (res) => res.response,
+            (res) => console.error(res),
+        );
 };
 
 /**
@@ -178,7 +93,7 @@ const getSchedule = function () {
  * @return {Promise<Array<Object>>} An array of parsed and formatted schedule elements
  */
 const parseSchedule = function () {
-    return getSchedule().then((responseJSON) => {
+    return requestSchedule().then((responseJSON) => {
         const parsedSchedule = [];
 
         for (const responseJSONElement of responseJSON["Data"]) {
@@ -219,7 +134,13 @@ const processSchedule = function () {
     loadValueByKey("schedule").then((schedule) => {
         parseSchedule().then((parsedSchedule) => {
             saveKeyValue("schedule", parsedSchedule);
-            if (!schedule) window.location.reload();
+
+            if (!schedule) {
+                // noinspection JSUnresolvedReference
+                browser.runtime
+                    .sendMessage({ reload: true })
+                    .then(() => onPageOpen());
+            }
         });
 
         if (schedule) {
@@ -460,10 +381,7 @@ const setSchedule = function (closestDays) {
  */
 const onPageOpen = function () {
     updateGrades();
-    // processSchedule();
-    //
-    // changeGradeFieldsSizes();
-    // setScheduleCSS();
+    processSchedule();
 };
 
 onPageOpen();
