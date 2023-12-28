@@ -18,9 +18,8 @@ const saveKeyValue = (key, value) =>
 const loadValueByKey = (key) =>
     browser.storage.local.get(key).then((res) => res[key]);
 
-// check to know if we are on the page with grades
 const group = document
-    .querySelector('select[name="student_id"] option[selected]')
+    .querySelector('select[name="student_id"] option')
     .innerText.split(" ")[0];
 const weeksNumbers = {
     "1 числитель": 0,
