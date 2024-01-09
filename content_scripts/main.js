@@ -184,13 +184,13 @@ const getClosestLessons = function (
         currentDayNumber = date.getDay();
     }
 
-    let stringCurrentWeek = document
-        .querySelector(".small")
-        .innerText.split("\n")[1];
+    const currentWeekElement = document.querySelector(".small");
+    if (!currentWeekElement) return [];
+
+    let stringCurrentWeek = currentWeekElement.innerText.split("\n")[1];
     if (!stringCurrentWeek)
-        stringCurrentWeek = document
-            .querySelector(".small")
-            .innerText.split(" ")
+        stringCurrentWeek = currentWeekElement.innerText
+            .split(" ")
             .slice(3)
             .join(" ");
     let searchWeekNumber = weeksNumbers[stringCurrentWeek];

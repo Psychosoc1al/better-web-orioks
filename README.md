@@ -1,5 +1,6 @@
-# Better OriCOCKs
+# Better web-ORIOKS
 
+![Firefox](https://img.shields.io/badge/Firefox_&_Android-FF7139?style=flat&logo=Firefox-Browser&logoColor=white)
 [![built with Codeium](https://codeium.com/badges/main)](https://codeium.com)
 
 Это небольшой проект, цель которого - попытаться починить ОРИОКС на стороне клиента.
@@ -8,9 +9,28 @@
 
 ---
 
-В этом репозитории разрабатывается браузерное расширение, но существует
-и [скриптовая версия](https://github.com/Psychosoc1al/better-oricocks)
-для Tampermonkey и тому подобного
+#### Что здесь происходит
+
+В этом репозитории разрабатывается браузерное расширение для Firefox и Chrome, 
+но существует и [скриптовая версия](https://github.com/Psychosoc1al/better-oricocks)
+для Tampermonkey и тому подобного, хотя она уже не поддерживается
+
+---
+
+#### Установка:
+
+1. Установите расширение из магазина приложений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
+2. ???
+3. PROFIT
+
+---
+
+#### TODO:
+
+- [ ] Адаптация под Google Chrome
+- [ ] Отображение экзаменов в расписании
+- [ ] Графическая информация о баллах по типам контрольных мероприятий?
+- [ ] Встроенная тёмная тема?
 
 ---
 
