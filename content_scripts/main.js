@@ -18,9 +18,12 @@ const saveKeyValue = (key, value) =>
 const loadValueByKey = (key) =>
     browser.storage.local.get(key).then((res) => res[key]);
 
-const group = document
-    .querySelector('select[name="student_id"] option')
-    .innerText.split(" ")[0];
+const group = document.body
+    ? document
+          .querySelector('select[name="student_id"] option')
+          .innerText.split(" ")[0]
+    : "";
+
 const weeksNumbers = {
     "1 числитель": 0,
     "1 знаменатель": 1,
@@ -145,7 +148,9 @@ const processSchedule = function () {
         if (schedule) {
             const parsedSchedule = JSON.parse(JSON.stringify(schedule));
             const closestLessons = getClosestLessons(parsedSchedule);
-            setSchedule(closestLessons);
+
+            if (closestLessons.length) setSchedule(closestLessons);
+            else setExamsSchedule();
         }
     });
 };
@@ -376,6 +381,102 @@ const setSchedule = function (closestDays) {
 };
 
 /**
+ * Converts the exam date to the {@link Date} object
+ *
+ * @param examDate - The original date
+ * @param examTime - The original time
+ * @return {Date} The converted date
+ */
+const parseExamDate = function (examDate, examTime) {
+    // prettier-ignore
+    const monthStringToNumber = {
+        'января': 0,
+        'февраля': 1,
+        'июня': 5,
+        'июля': 6,
+    }
+
+    const [day, monthString, year] = examDate.split(" ");
+    const [hour, minute] = examTime.split(":");
+
+    return new Date(year, monthStringToNumber[monthString], day, hour, minute);
+};
+
+/**
+ * Gets the exams schedule if it is session time
+ */
+const setExamsSchedule = function () {
+    const source = document.querySelector("#forang");
+    const jsonData = JSON.parse(source.textContent);
+    const disciplines = jsonData["dises"];
+    const schedule = [];
+
+    let currentDate = new Date();
+    let utcDate = new Date(
+        currentDate.getTime() + currentDate.getTimezoneOffset() * 60 * 1000,
+    );
+    currentDate = new Date(utcDate.getTime() + 3 * 60 * 60 * 1000);
+
+    for (const element of disciplines) {
+        const controlForm = element["formControl"]["name"];
+        if (controlForm !== "Экзамен") continue;
+
+        const examName = element["science"]["name"];
+        const consDate = parseExamDate(
+            element["date_cons"],
+            element["time_cons"],
+        );
+        const examDate = parseExamDate(
+            element["date_exam"],
+            element["time_exam"],
+        );
+
+        if (currentDate < consDate)
+            schedule.push([
+                consDate.toLocaleDateString("ru", {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "2-digit",
+                }) + ` (дней: ${consDate.getDate() - currentDate.getDate()})`,
+                [
+                    {
+                        name: `${examName}
+                        `,
+                        type: "Конс",
+                        location: element["room_cons"],
+                        time: element["time_cons"],
+                    },
+                ],
+                consDate,
+            ]);
+
+        if (currentDate < examDate)
+            schedule.push([
+                examDate.toLocaleDateString("ru", {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "2-digit",
+                }) + ` (дней: ${examDate.getDate() - currentDate.getDate()})`,
+                [
+                    {
+                        name: `${examName}
+                        `,
+                        type: "Экз",
+                        location: element["room_exam"],
+                        time: element["time_exam"],
+                    },
+                ],
+                examDate,
+            ]);
+    }
+
+    schedule.sort((a, b) => a[2] - b[2]);
+
+    jsonData["schedule"] = schedule;
+    source.textContent = JSON.stringify(jsonData);
+};
+
+/**
  * Executes the necessary actions when the page is opened.
  */
 const onPageOpen = function () {
@@ -383,4 +484,4 @@ const onPageOpen = function () {
     processSchedule();
 };
 
-onPageOpen();
+if (group) onPageOpen();

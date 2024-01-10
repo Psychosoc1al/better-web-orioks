@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Better web-ORIOKS",
-    "version": "0.2.2",
+    "version": "0.3.0",
     "description": "Улучшение веб-версии ОРИОКС: изменение подсчёта баллов и местами дизайна, а также добавление/доработка расписания",
     "developer": {
         "name": "Psychosoc1al",

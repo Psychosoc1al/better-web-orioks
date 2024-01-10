@@ -4,8 +4,12 @@
     }
 }
 
-tr[ng-repeat="c in data"] span {
+tr[ng-repeat="c in data"] td:last-child span {
     white-space: pre-line;
+}
+
+tr[ng-repeat="c in data"] td:first-child {
+    width: 0;
 }
 
 .w46 {

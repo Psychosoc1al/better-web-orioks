@@ -12,16 +12,12 @@ browser.runtime.onMessage.addListener((request) => {
 
 let reload = true;
 let oldUrl;
-const forceReload = function (tabId, changeInfo, tab) {
+const forceReload = function (tabId, changeInfo) {
     if (changeInfo.status === "complete") {
         // noinspection JSUnresolvedReference
         browser.tabs
             .query({ active: true, lastFocusedWindow: true })
-            .then((tabs) => (oldUrl = tabs[0].url))
-            .then(() => {
-                console.log(oldUrl, tab.url);
-            });
-        console.log(tab.url, oldUrl);
+            .then((tabs) => (oldUrl = tabs[0].url));
     }
 
     let newUrl = changeInfo.url;
