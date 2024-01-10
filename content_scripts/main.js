@@ -437,7 +437,12 @@ const setExamsSchedule = function () {
                     weekday: "long",
                     day: "2-digit",
                     month: "2-digit",
-                }) + ` (дней: ${consDate.getDate() - currentDate.getDate()})`,
+                }) +
+                    (consDate.getDate() - currentDate.getDate()
+                        ? ` (дней: ${
+                              consDate.getDate() - currentDate.getDate()
+                          })`
+                        : ` (сегодня)`),
                 [
                     {
                         name: `${examName}
@@ -456,7 +461,12 @@ const setExamsSchedule = function () {
                     weekday: "long",
                     day: "2-digit",
                     month: "2-digit",
-                }) + ` (дней: ${examDate.getDate() - currentDate.getDate()})`,
+                }) +
+                    (examDate.getDate() - currentDate.getDate()
+                        ? ` (дней: ${
+                              examDate.getDate() - currentDate.getDate()
+                          })`
+                        : ` (сегодня)`),
                 [
                     {
                         name: `${examName}
