@@ -1,6 +1,6 @@
 /*Page body width*/
 @media (min-width: 1200px) {
-    .container {
+    body[class="vsc-initialized"] div.container {
         width: 1330px;
     }
 }
@@ -82,8 +82,8 @@ li.dropdown li:last-child a,
 .table,
 #w0,
 #w1,
-li:not(.open):not(.active):hover a:hover,
-li:not(.open) a,
+li:not(.open):not(.active):hover > a:hover,
+li:not(.open) > a,
 div.dropdown-menu-left,
 div.notification-more-all {
     border-bottom-left-radius: 10px;
@@ -124,7 +124,7 @@ div.panel-heading {
 }
 
 div.panel,
-div[class^="modal-dialog"],
+div.modal-dialog,
 div.modal-content {
     border-radius: 10px !important;
 }
@@ -147,4 +147,52 @@ div.panel-heading:has(a.collapsed) {
 .table-striped tbody tr:nth-last-child(2),
 .table-striped tbody tr:nth-last-child(2):not(:has(~ tr.in)) td:last-child {
     border-bottom-right-radius: 10px;
+}
+
+/*Moodle*/
+div.card,
+section,
+div.info,
+div.formulation,
+div.moodle-dialogue-wrap,
+div.popover-region-container {
+    border-radius: 10px !important;
+}
+
+div.dropdown-menu,
+#quiz-timer,
+a.endtestlink,
+div.othernav a,
+div.controls a.arrow_link,
+div.popover[class*="bs-popover"] {
+    border-radius: 5px;
+    padding: 0;
+}
+
+#page-footer,
+div.fp-navbar,
+div.calendar_event_course,
+div.editor_atto_toolbar {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+div.filemanager-container,
+div.popover-region-footer-container,
+div.editor_atto_content {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin-bottom: 10px;
+}
+
+input.btn[value^="Отправить всё"] {
+    margin-bottom: 5px;
+}
+
+div.dropdown-divider {
+    margin: 1px;
+}
+
+table.minicalendar td.day {
+    border-radius: 3px;
 }
