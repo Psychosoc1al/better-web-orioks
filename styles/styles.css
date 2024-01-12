@@ -1,9 +1,11 @@
+/*Page body width*/
 @media (min-width: 1200px) {
     .container {
         width: 1330px;
     }
 }
 
+/*Schedule table*/
 tr[ng-repeat="c in data"] td:last-child span {
     white-space: pre-line;
 }
@@ -12,6 +14,35 @@ tr[ng-repeat="c in data"] td:first-child {
     width: 0;
 }
 
+div[ng-repeat="entry in PD.schedule"]:last-child,
+div[ng-repeat="entry in PD.schedule"]:last-child table {
+    margin-bottom: 5px;
+}
+
+/*Discipline info table*/
+div.list-group-item:first-child,
+div.list-group-item[ng-show^="news ==="] {
+    border-radius: 5px 5px 0 0 !important;
+}
+
+div.list-group-item:nth-last-child(2),
+div.list-group-item:has(a[href^="/student/ir/"]) {
+    border-radius: 0 0 5px 5px !important;
+    margin-bottom: 10px;
+}
+
+div.list-group-item:last-child {
+    display: none;
+}
+
+/*Info tiles + link buttons*/
+div.well,
+a.btn,
+div.alert {
+    border-radius: 5px;
+}
+
+/*Grades sizes*/
 .w46 {
     width: 34px;
 }
@@ -24,4 +55,96 @@ tr[ng-repeat="c in data"] td:first-child {
 
 span[style="width: 60px"] {
     width: fit-content !important;
+}
+
+/*Selects + mark types + others*/
+select.input-sm,
+select,
+input,
+textarea,
+a.list-group-item,
+button,
+div.list-group-item.bg-grey,
+ul.breadcrumb {
+    border-radius: 5px !important;
+}
+
+/*Resources page*/
+span.label,
+#bp {
+    border-radius: 3px !important;
+}
+
+/*Dropdown lists at the top + header*/
+ul.dropdown-menu,
+li.dropdown li:last-child,
+li.dropdown li:last-child a,
+.table,
+#w0,
+#w1,
+li:not(.open):not(.active):hover a:hover,
+li:not(.open) a,
+div.dropdown-menu-left,
+div.notification-more-all {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/*News page tabs*/
+ul[role="tablist"] a {
+    border-radius: 5px 5px 0 0 !important;
+}
+
+/*News page table + practice page table*/
+.table-bordered {
+    border-collapse: separate;
+    border-radius: 10px;
+}
+
+.table-bordered th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.table-bordered th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.table-bordered tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.table-bordered tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+
+/*FAQ page*/
+div.panel-heading {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+div.panel,
+div[class^="modal-dialog"],
+div.modal-content {
+    border-radius: 10px !important;
+}
+
+div.panel-heading:has(a.collapsed) {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.table-condensed {
+    margin-bottom: -5px;
+}
+
+/*Portfolio page*/
+.table-striped tbody tr:nth-last-child(2),
+.table-striped tbody tr:nth-last-child(2):not(:has(~ tr.in)) td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.table-striped tbody tr:nth-last-child(2),
+.table-striped tbody tr:nth-last-child(2):not(:has(~ tr.in)) td:last-child {
+    border-bottom-right-radius: 10px;
 }
