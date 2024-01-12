@@ -1,7 +1,7 @@
 # Better web-ORIOKS
 
 [![Firefox](https://img.shields.io/badge/Firefox_&_Android-FF7139?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
-[![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#)
+[![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#better-web-orioks)
 [![Built with Codeium](https://codeium.com/badges/main)](https://codeium.com)
 
 Это небольшое браузерное расширение — в том числе и адаптированное под мобильные
@@ -23,7 +23,7 @@
   - В том числе **добавляет расписание сессии** по окончании семестра
 - **Улучшает внешний вид**: меняет некоторые размеры элементов для лучшей читаемости
 
-Некоторые детали [указаны ниже](#faq%D1%87%D0%B0%D0%B2%D0%BE-%D0%BD%D0%BE-%D1%8D%D1%82%D0%BE-%D0%BE%D1%82%D0%B2%D0%B5%D1%82%D1%8B)
+Некоторые детали [указаны ниже](#faqчаво-но-это-ответы)
 
 ---
 
