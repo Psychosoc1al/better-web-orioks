@@ -6,12 +6,13 @@
 }
 
 /*Schedule table*/
-tr[ng-repeat="c in data"] td:last-child span {
+tr[ng-repeat="c in data"] td span {
     white-space: pre-line;
 }
 
 tr[ng-repeat="c in data"] td:first-child {
-    width: 0;
+    width: 70px;
+    text-align: center;
 }
 
 div[ng-repeat="entry in PD.schedule"]:last-child,
@@ -67,6 +68,31 @@ button,
 div.list-group-item.bg-grey,
 ul.breadcrumb {
     border-radius: 5px !important;
+}
+
+#to_top {
+    z-index: 1;
+}
+
+#to_top:hover {
+    background-color: #ffffff05;
+}
+
+th span.glyphicon-arrow-left {
+    z-index: 2;
+    height: 100%;
+    display: block;
+    margin: 10px;
+}
+
+tr:has(span.glyphicon-arrow-left) {
+    padding: 0 !important;
+    text-align: center;
+    vertical-align: middle !important;
+}
+
+#w0 {
+    z-index: 2;
 }
 
 /*Resources page*/

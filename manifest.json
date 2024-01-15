@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Better web-ORIOKS",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Улучшение веб-версии ОРИОКС: изменение подсчёта баллов и местами дизайна, а также добавление/доработка расписания",
     "developer": {
         "name": "Psychosoc1al",
@@ -12,10 +12,7 @@
         "96": "icons/icon-96.png"
     },
     "background": {
-        "scripts": [
-            "background_scripts/webRequests.js",
-            "background_scripts/pageReload.js"
-        ],
+        "scripts": ["background_scripts/scheduleProcessing.js"],
         "persistent": false
     },
     "content_scripts": [
@@ -29,7 +26,7 @@
     "permissions": [
         "cookies",
         "storage",
-        "tabs",
-        "https://miet.ru/schedule/data"
+        "https://miet.ru/schedule/data",
+        "https://orioks.miet.ru/student/student"
     ]
 }
