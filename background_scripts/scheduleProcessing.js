@@ -6,7 +6,7 @@
  * @param {Object} value - The value to save
  */
 const saveKeyValue = (key, value) =>
-    browser.storage.local.set({ [key]: value });
+    chrome.storage.local.set({ [key]: value });
 
 // noinspection JSUnresolvedReference
 /**
@@ -16,11 +16,9 @@ const saveKeyValue = (key, value) =>
  * @return {Promise<Object>} - The value associated with the given key
  */
 const loadValueByKey = (key) =>
-    browser.storage.local.get(key).then((res) => res[key]);
+    chrome.storage.local.get(key).then((res) => res[key]);
 
-let studyingPageDocument;
 let group;
-let currentWeekElement;
 
 /**
  * Sends a request to the schedule server
@@ -244,17 +242,14 @@ const parseSchedule = function () {
 const updateSchedule = function () {
     return sendRequest("https://orioks.miet.ru/student/student", "GET").then(
         (responseText) => {
-            studyingPageDocument = new DOMParser().parseFromString(
+            group = new RegExp(/selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/).exec(
                 responseText,
-                "text/html",
+            )[1];
+
+            const isExamsTime = new RegExp(/<\/span> Сессия<\/a><\/li>/).exec(
+                responseText,
             );
-
-            group = studyingPageDocument
-                .querySelector('select[name="student_id"] option')
-                .innerText.split(" ")[0];
-
-            currentWeekElement = document.querySelector(".small");
-            if (!currentWeekElement) return false;
+            if (isExamsTime) return false;
 
             return getNewSchedule().then((newSchedule) =>
                 loadValueByKey(group + "-orig").then((oldSchedule) => {
@@ -286,7 +281,7 @@ const getNewSchedule = function () {
             const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
             if (cookie) {
                 // noinspection JSUnresolvedReference
-                browser.cookies.set({
+                chrome.cookies.set({
                     url: "https://miet.ru/schedule/data",
                     name: "wl",
                     value: cookie[1],
@@ -315,10 +310,10 @@ const onAction = function () {
 };
 
 // noinspection JSUnresolvedReference,JSDeprecatedSymbols,JSCheckFunctionSignatures
-browser.runtime.onStartup.addListener(onAction);
+chrome.runtime.onStartup.addListener(onAction);
 
 // noinspection JSUnresolvedReference,JSDeprecatedSymbols,JSCheckFunctionSignatures
-browser.runtime.onInstalled.addListener(onAction);
+chrome.runtime.onInstalled.addListener(onAction);
 
-// browser.storage.local.clear();
-// browser.storage.local.get().then((data) => console.log(data));
+// chrome.storage.local.clear();
+// chrome.storage.local.get().then((data) => console.log(data));

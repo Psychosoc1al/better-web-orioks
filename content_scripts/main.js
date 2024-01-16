@@ -6,7 +6,7 @@
  * @return {Promise<Object>} - The value associated with the given key
  */
 const loadValueByKey = (key) =>
-    browser.storage.local.get(key).then((res) => res[key]);
+    chrome.storage.local.get(key).then((res) => res[key]);
 
 /**
  * Updates the grade fields based on the newest data
@@ -292,11 +292,37 @@ const parseExamDate = function (examDate, examTime) {
 };
 
 /**
+ * Waits for the element to appear to start the script
+ *
+ * @param selector - The CSS selector of the element
+ * @return {Promise<void>} A promise to be resolved when the element is found
+ */
+const waitForElement = function (selector) {
+    return new Promise((resolve) => {
+        if (document.querySelector(selector)) return resolve();
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector(selector)) {
+                observer.disconnect();
+                resolve();
+            }
+        });
+
+        observer.observe(document, {
+            childList: true,
+            subtree: true,
+        });
+    });
+};
+
+/**
  * Executes the necessary actions when the page is opened.
  */
 const onPageOpen = function () {
-    updateGrades();
-    setSchedule();
+    waitForElement("#forang").then(() => {
+        updateGrades();
+        setSchedule();
+    });
 };
 
 onPageOpen();

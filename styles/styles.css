@@ -1,6 +1,7 @@
 /*Page body width*/
 @media (min-width: 1200px) {
-    body[class="vsc-initialized"] div.container {
+    div.container.margin-top,
+    div[class="container"] {
         width: 1330px;
     }
 }
@@ -23,12 +24,12 @@ div[ng-repeat="entry in PD.schedule"]:last-child table {
 /*Discipline info table*/
 div.list-group-item:first-child,
 div.list-group-item[ng-show^="news ==="] {
-    border-radius: 5px 5px 0 0 !important;
+    border-radius: 10px 10px 0 0 !important;
 }
 
 div.list-group-item:nth-last-child(2),
 div.list-group-item:has(a[href^="/student/ir/"]) {
-    border-radius: 0 0 5px 5px !important;
+    border-radius: 0 0 10px 10px !important;
     margin-bottom: 10px;
 }
 
@@ -40,18 +41,18 @@ div.list-group-item:last-child {
 div.well,
 a.btn,
 div.alert {
-    border-radius: 5px;
+    border-radius: 10px;
 }
 
 /*Grades sizes*/
 .w46 {
-    width: 34px;
+    width: 34px !important;
 }
 
 .grade,
 #bp {
-    width: 45px;
-    padding: 3px;
+    width: 45px !important;
+    padding: 3px !important;
 }
 
 span[style="width: 60px"] {
@@ -75,7 +76,7 @@ ul.breadcrumb {
 }
 
 #to_top:hover {
-    background-color: #ffffff05;
+    background-color: #ffffff05 !important;
 }
 
 th span.glyphicon-arrow-left {
@@ -85,7 +86,7 @@ th span.glyphicon-arrow-left {
     margin: 10px;
 }
 
-tr:has(span.glyphicon-arrow-left) {
+tr:has(span.glyphicon-arrow-left) th {
     padding: 0 !important;
     text-align: center;
     vertical-align: middle !important;
@@ -110,10 +111,15 @@ li.dropdown li:last-child a,
 #w1,
 li:not(.open):not(.active):hover > a:hover,
 li:not(.open) > a,
-div.dropdown-menu-left,
-div.notification-more-all {
+div.notification-more,
+div.panel-footer {
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
+}
+
+div.dropdown-menu-left {
+    border-bottom-left-radius: 11px !important;
+    border-bottom-right-radius: 11px !important;
 }
 
 /*News page tabs*/
