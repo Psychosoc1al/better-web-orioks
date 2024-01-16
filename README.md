@@ -1,6 +1,7 @@
 # Better web-ORIOKS
 
-[![Firefox](https://img.shields.io/badge/Firefox_&_Android-FF7139?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
+[![Firefox](https://img.shields.io/badge/Firefox-FF7139?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
+[![Firefox Android](https://img.shields.io/badge/Firefox_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks-android/)
 [![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#better-web-orioks)
 [![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
 [![Opera](https://img.shields.io/badge/Opera_|_скоро-FF1B2D?style=flat&logo=Opera&logoColor=white)](#better-web-orioks)
@@ -32,8 +33,11 @@
 
 ### Установка:
 
-1. Установите расширение из магазина расширений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
+1. Установите расширение из магазина расширений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/), [Firefox Android](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks-android/)
    или Chrome (скоро) _(бейджики наверху кликабельны, кстати)_
+   - Обратите внимание на мобильную версию для Firefox, она по объективным причинам является
+     отдельным от стандартной версии расширением. Хотя его же можно использовать и в качестве версии
+     для ПК, функционал там в точности такой же
 2. ???
 3. PROFIT
 4. **_Опционально_**: автообновление расширения для фонового обновления без перезапуска браузера:
@@ -68,8 +72,7 @@
 
 ### TODO _(оно же планы)_:
 
-- [ ] Адаптация и выпуск в Google Chrome _(и других браузерах)_
-- [ ] Написание описания для магазинов расширений
+- [ ] Адаптация и выпуск в Google Chrome и подобных
 - [ ] Графическая информация о баллах по типам контрольных мероприятий?
 - [ ] Встроенная тёмная тема?
 - [x] ~~Переезд на Manifest V3~~

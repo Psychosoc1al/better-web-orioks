@@ -1,12 +1,14 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "Better web-ORIOKS",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "Улучшение веб-версии ОРИОКС: доработка подсчёта баллов, расписания и дизайна",
     "browser_specific_settings": {
         "gecko": {
-            "id": "{3fe0962f-b043-4e77-977a-5fa4cf00273a}",
-            "strict_min_version": "109.0"
+            "strict_min_version": "90.0"
+        },
+        "gecko_android": {
+            "strict_min_version": "113.0"
         }
     },
     "developer": {
@@ -19,8 +21,7 @@
         "128": "icons/icon-128.png"
     },
     "background": {
-        "page": "background_scripts/background-page.html",
-        "service_worker": "background_scripts/scheduleProcessing.js"
+        "scripts": ["background_scripts/scheduleProcessing.js"]
     },
     "content_scripts": [
         {
@@ -30,8 +31,9 @@
             "run_at": "document_start"
         }
     ],
-    "permissions": ["cookies", "storage"],
-    "host_permissions": [
+    "permissions": [
+        "cookies",
+        "storage",
         "https://miet.ru/schedule/data",
         "https://orioks.miet.ru/student/student"
     ]

@@ -13,7 +13,10 @@
 !background_scripts/*.html
 
 !styles
-!styles/styles.css
+!styles/*.css
 
 !icons
 !icons/*.png
+
+!manifest-android
+!manifest-android/manifest.json

@@ -5,8 +5,7 @@
  * @param {string} key - The key to save
  * @param {Object} value - The value to save
  */
-const saveKeyValue = (key, value) =>
-    chrome.storage.local.set({ [key]: value });
+const saveKeyValue = (key, value) => chrome.storage.local.set({ [key]: value });
 
 // noinspection JSUnresolvedReference
 /**
@@ -249,7 +248,7 @@ const updateSchedule = function () {
             const isExamsTime = new RegExp(/<\/span> Сессия<\/a><\/li>/).exec(
                 responseText,
             );
-            if (isExamsTime) return false;
+            if (isExamsTime) return Promise.resolve(false);
 
             return getNewSchedule().then((newSchedule) =>
                 loadValueByKey(group + "-orig").then((oldSchedule) => {
