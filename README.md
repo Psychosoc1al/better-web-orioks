@@ -1,10 +1,9 @@
 # Better web-ORIOKS
 
-[![Firefox](https://img.shields.io/badge/Firefox-FF7139?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
-[![Firefox Android](https://img.shields.io/badge/Firefox_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks-android/)
+[![Firefox](https://img.shields.io/badge/Firefox_&_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
 [![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#better-web-orioks)
-[![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
 [![Opera](https://img.shields.io/badge/Opera_|_скоро-FF1B2D?style=flat&logo=Opera&logoColor=white)](#better-web-orioks)
+[![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
 [![Built with Codeium](https://codeium.com/badges/main)](https://codeium.com)
 
 Это небольшое браузерное расширение — в том числе и адаптированное под мобильные
@@ -33,8 +32,8 @@
 
 ### Установка:
 
-1. Установите расширение из магазина расширений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/), [Firefox Android](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks-android/)
-   или Chrome (скоро) _(бейджики наверху кликабельны, кстати)_
+1. Установите расширение из магазина расширений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/) или Chrome (скоро) 
+   _(бейджики наверху кликабельны, кстати)_
    - Обратите внимание на мобильную версию для Firefox, она по объективным причинам является
      отдельным от стандартной версии расширением. Хотя его же можно использовать и в качестве версии
      для ПК, функционал там в точности такой же
@@ -63,10 +62,9 @@
   грубо говоря (на деле с того же сервера, откуда и данные для той страницы), так что могут
   не соответствовать действительности, но тут автор полностью невиновный. А для экзаменов указаны
   преподаватели, что указаны прямо в ОРИОКСе
-- Касательно предупреждений относительно Manifest: для унификации приходится идти на некоторые
-  уступки, добавляя поля обеих реализаций сразу _(Chrome и Firefox не договорились, да)_, что и 
-  вызывает неудовольствие реализаций о незнакомых пунктах. Тем не менее это всего лишь 
-  предупреждения, не влияющие на работу расширения
+- Касательно Manifest: в репозитории лежит две версии, вторая для Firefox (в том числе Android),
+  а третья, соответственно, для остального. Пока для мобильной версии иначе совсем никак, а для 
+  старшей банально удобнее _(хотя, конечно, не для сборки...)_
 
 ---
 

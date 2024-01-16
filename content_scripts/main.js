@@ -322,32 +322,7 @@ const onPageOpen = function () {
     waitForElement("#forang").then(() => {
         updateGrades();
         setSchedule();
-        requestPermissions();
     });
 };
 
 onPageOpen();
-
-const permissionsToRequest = {
-    permissions: ["cookies", "storage"],
-    origins: [
-        "https://miet.ru/schedule/data",
-        "https://orioks.miet.ru/student/student",
-    ],
-};
-
-async function requestPermissions() {
-    function onResponse(response) {
-        if (response) {
-            console.log("Permission was granted");
-        } else {
-            console.log("Permission was refused");
-        }
-        return browser.permissions.getAll();
-    }
-
-    const response = await browser.permissions.request(permissionsToRequest);
-    const currentPermissions = await onResponse(response);
-
-    console.log(`Current permissions:`, currentPermissions);
-}

@@ -86,10 +86,16 @@ th span.glyphicon-arrow-left {
     margin: 10px;
 }
 
-tr:has(span.glyphicon-arrow-left) th {
-    padding: 0 !important;
+tr:has(span.glyphicon-arrow-left) th:not(tr:has(div.w46)),
+tr.discussion-label-span td:not(tr.discussion-label-span td:nth-child(2)) {
     text-align: center;
     vertical-align: middle !important;
+}
+
+th div.w46,
+td div.w46 {
+    width: 47px !important;
+    text-align: center;
 }
 
 #w0 {
