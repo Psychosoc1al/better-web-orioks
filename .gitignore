@@ -18,5 +18,5 @@
 !icons
 !icons/*.png
 
-!manifest-android
-!manifest-android/manifest.json
+!manifest-firefox-v2
+!manifest-firefox-v2/manifest.json
