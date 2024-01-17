@@ -1,3 +1,12 @@
+let metabrowser;
+try {
+    // noinspection JSUnresolvedReference
+    metabrowser = browser;
+} catch (e) {
+    // noinspection JSUnresolvedReference
+    metabrowser = chrome;
+}
+
 // noinspection JSUnresolvedReference
 /**
  * Retrieves the value associated with the given key
@@ -6,7 +15,7 @@
  * @return {Promise<Object>} - The value associated with the given key
  */
 const loadValueByKey = (key) =>
-    chrome.storage.local.get(key).then((res) => res[key]);
+    metabrowser.storage.local.get(key).then((res) => res[key]);
 
 /**
  * Updates the grade fields based on the newest data
@@ -315,6 +324,13 @@ const waitForElement = function (selector) {
     });
 };
 
+// noinspection JSUnresolvedVariable
+/**
+ * Checks if there is a new schedule and updates the storaged one if needed
+ */
+const checkUpdates = () =>
+    metabrowser.runtime.sendMessage({ action: "checkUpdates" });
+
 /**
  * Executes the necessary actions when the page is opened.
  */
@@ -322,6 +338,7 @@ const onPageOpen = function () {
     waitForElement("#forang").then(() => {
         updateGrades();
         setSchedule();
+        checkUpdates();
     });
 };
 

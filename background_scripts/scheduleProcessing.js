@@ -1,3 +1,12 @@
+let metabrowser;
+try {
+    // noinspection JSUnresolvedReference
+    metabrowser = browser;
+} catch (e) {
+    // noinspection JSUnresolvedReference
+    metabrowser = chrome;
+}
+
 // noinspection JSUnresolvedReference
 /**
  * Save a key-value pair to the storage
@@ -5,7 +14,8 @@
  * @param {string} key - The key to save
  * @param {Object} value - The value to save
  */
-const saveKeyValue = (key, value) => chrome.storage.local.set({ [key]: value });
+const saveKeyValue = (key, value) =>
+    metabrowser.storage.local.set({ [key]: value });
 
 // noinspection JSUnresolvedReference
 /**
@@ -15,7 +25,7 @@ const saveKeyValue = (key, value) => chrome.storage.local.set({ [key]: value });
  * @return {Promise<Object>} - The value associated with the given key
  */
 const loadValueByKey = (key) =>
-    chrome.storage.local.get(key).then((res) => res[key]);
+    metabrowser.storage.local.get(key).then((res) => res[key]);
 
 let group;
 
@@ -258,7 +268,9 @@ const updateSchedule = function () {
                         JSON.stringify(newSchedule) !==
                             JSON.stringify(oldSchedule)
                     ) {
-                        saveKeyValue(group + "-orig", newSchedule);
+                        saveKeyValue(group + "-orig", newSchedule).then(() =>
+                            saveKeyValue("updateTime", Date.now()),
+                        );
                         return true;
                     }
 
@@ -280,7 +292,7 @@ const getNewSchedule = function () {
             const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
             if (cookie) {
                 // noinspection JSUnresolvedReference
-                chrome.cookies.set({
+                metabrowser.cookies.set({
                     url: "https://miet.ru/schedule/data",
                     name: "wl",
                     value: cookie[1],
@@ -308,11 +320,19 @@ const onAction = function () {
     });
 };
 
-// noinspection JSUnresolvedReference,JSDeprecatedSymbols,JSCheckFunctionSignatures
-chrome.runtime.onStartup.addListener(onAction);
+// noinspection JSUnresolvedReference,JSDeprecatedSymbols
+metabrowser.runtime.onStartup.addListener(onAction);
 
-// noinspection JSUnresolvedReference,JSDeprecatedSymbols,JSCheckFunctionSignatures
-chrome.runtime.onInstalled.addListener(onAction);
+// noinspection JSUnresolvedReference,JSDeprecatedSymbols
+metabrowser.runtime.onInstalled.addListener(onAction);
 
-// chrome.storage.local.clear();
-// chrome.storage.local.get().then((data) => console.log(data));
+// noinspection JSUnresolvedReference,JSDeprecatedSymbols
+metabrowser.runtime.onMessage.addListener((request) => {
+    if (request.action === "checkUpdates")
+        loadValueByKey("updateTime").then((timestamp) => {
+            if (Date.now() - timestamp > 1000 * 60 * 60 * 6) onAction();
+        });
+});
+
+// metabrowser.storage.local.clear();
+// metabrowser.storage.local.get().then((data) => console.log(data));
