@@ -20,3 +20,6 @@
 
 !manifest-firefox-v2
 !manifest-firefox-v2/manifest.json
+
+!screenshots
+!screenshots/*.png

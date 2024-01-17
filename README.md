@@ -27,14 +27,14 @@
   подскругляет углы у откровенно прямоугольных элементов
 
 <details>
-<summary style="font-size: large; font-weight: bold">Скриншоты</summary>
+<summary style="font-size: large; font-weight: bold">Скриншоты [с Dark Reader]</summary>
 
 - Главная страница (новости)
-![Screenshot 1](screenshots/main-page.png)
+![Главная страница](screenshots/main-page.png)
 
 
 - Страница с расписанием + экзамены
-![Screenshot 2](screenshots/studying-page-exams.png)
+![Расписание](screenshots/studying-page-exams.png)
 
 </details>
 
