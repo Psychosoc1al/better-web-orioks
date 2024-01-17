@@ -1,6 +1,6 @@
 # Better web-ORIOKS
 
-[![Firefox](https://img.shields.io/badge/Firefox_&_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/)
+[![Firefox](https://img.shields.io/badge/Firefox_&_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-GB/firefox/addon/better-web-orioks/)
 [![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#better-web-orioks)
 [![Opera](https://img.shields.io/badge/Opera_|_скоро-FF1B2D?style=flat&logo=Opera&logoColor=white)](#better-web-orioks)
 [![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
@@ -32,19 +32,14 @@
 
 ### Установка:
 
-1. Установите расширение из магазина расширений [Firefox](https://addons.mozilla.org/en-US/firefox/addon/better-web-orioks/) или Chrome (скоро) 
-   _(бейджики наверху кликабельны, кстати)_
-   - Обратите внимание на мобильную версию для Firefox, она по объективным причинам является
-     отдельным от стандартной версии расширением. Хотя его же можно использовать и в качестве версии
-     для ПК, функционал там в точности такой же
+1. Установите расширение из подходящего магазина расширений (кликабельные [бейджики наверху(#better-web-orioks)])
 2. ???
 3. PROFIT
-4. **_Опционально_**: автообновление расширения для фонового обновления без перезапуска браузера:
+4. **_Опционально [Firefox]_**: автообновление расширения для `наилучшего опыта использования `:
    - Firefox:
      1. `Ctrl + Shift + A` или `☰ -> Настройки -> Расширения и темы`
      2. Находим `Better web-ORIOKS` и нажимаем 
-     3. `Автоматическое обновление -> Включено`
-   - Chrome, похоже, не даёт большого выбора и по умолчанию занимается автообновлением 
+     3. `Автоматическое обновление -> Включено` 
 
 ---
 
