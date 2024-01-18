@@ -1,9 +1,7 @@
 # Better web-ORIOKS
 
 [![Firefox](https://img.shields.io/badge/Firefox_&_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/ru/firefox/addon/better-web-orioks/)
-[![Google Chrome](https://img.shields.io/badge/Google_Chrome-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](https://chromewebstore.google.com/detail/better-web-orioks/lfklcdejbjncohabmalekhndjjafoacm?hl=ru)
-[![Opera](https://img.shields.io/badge/Opera_|_скоро-FF1B2D?style=flat&logo=Opera&logoColor=white)](#better-web-orioks)
-[![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
+[![Chromium-based](https://img.shields.io/badge/Chromium--based_&_Android-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](https://chromewebstore.google.com/detail/better-web-orioks/lfklcdejbjncohabmalekhndjjafoacm?hl=ru)
 [![Built with Codeium](https://codeium.com/badges/main)](https://codeium.com)
 
 Это небольшое браузерное расширение — в том числе и адаптированное под мобильные
@@ -44,10 +42,13 @@
 
 ### Установка:
 
-1. Установите расширение из подходящего магазина расширений (кликабельные [бейджики наверху](#better-web-orioks))
-2. ???
-3. PROFIT
-4. **[Firefox] _Опционально_**: автообновление расширения для `наилучшего опыта использования`:
+1. Установите расширение из подходящего магазина расширений: [Firefox Add-ons](https://addons.mozilla.org/ru/firefox/addon/better-web-orioks/)
+   или [Chrome Web Store](https://chromewebstore.google.com/detail/better-web-orioks/lfklcdejbjncohabmalekhndjjafoacm?hl=ru) (ещё можно нажимать на [бейджики наверху](#better-web-orioks)).
+   Второй вариант подойдёт для большинства браузеров, лично проверены `Яндекс.Браузер` (в том числе
+   на Android), `Chrome`, `Edge` и `Opera`.
+3. ???
+4. PROFIT
+5. **[Firefox] _Опционально_**: автообновление расширения для `наилучшего опыта использования`:
     1. `Ctrl + Shift + A` или `☰ -> Настройки -> Расширения и темы`
     2. Находим `Better web-ORIOKS` и нажимаем
     3. `Автоматическое обновление -> Включено`
@@ -70,17 +71,17 @@
   преподаватели, что указаны прямо в ОРИОКСе
 - Проверка обновления данных расписания происходит при запуске браузера (профиля браузера), установке/обновлении
   расширения или посещении [запросе к] `orioks.miet.ru/*` раз в 6 часов
-- Касательно Manifest: в репозитории лежит две версии, вторая для Firefox (в том числе Android),
-  а третья, соответственно, для остального. Пока для мобильной версии иначе совсем никак, а для
-  старшей банально удобнее _(хотя, конечно, не для сборки...)_
+- Касательно Manifest: в репозитории лежит две версии, `V2` для Firefox (в том числе Android),
+  а `V3`, соответственно, для остального. Пока для мобильной версии «Лисы» иначе совсем никак, а для
+  старшей банально удобнее
 
 ---
 
 ### TODO _(оно же планы)_:
 
-- [ ] Адаптация и выпуск в Google Chrome и подобных
-- [ ] Графическая информация о баллах по типам контрольных мероприятий?
-- [ ] Встроенная тёмная тема?
+- [ ] Встроенная тёмная тема
+- [ ] Графическая информация о баллах по типам контрольных мероприятий
+- [x] ~~Адаптация и выпуск в Chrome Web Store~~
 - [x] ~~Переезд на Manifest V3~~
 - [x] ~~Переработка подгрузки расписаний~~
 - [x] ~~"Освежение" интерфейса скруглёнными углами~~
