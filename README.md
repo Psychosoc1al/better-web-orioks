@@ -1,7 +1,7 @@
 # Better web-ORIOKS
 
 [![Firefox](https://img.shields.io/badge/Firefox_&_Android-7538c7?style=flat&logo=Firefox-Browser&logoColor=white)](https://addons.mozilla.org/en-GB/firefox/addon/better-web-orioks/)
-[![Google Chrome](https://img.shields.io/badge/Google_Chrome_|_скоро-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](#better-web-orioks)
+[![Google Chrome](https://img.shields.io/badge/Google_Chrome-4285F4?style=flat&logo=GoogleChrome&logoColor=white)](https://chromewebstore.google.com/detail/better-web-orioks/lfklcdejbjncohabmalekhndjjafoacm?hl=ru)
 [![Opera](https://img.shields.io/badge/Opera_|_скоро-FF1B2D?style=flat&logo=Opera&logoColor=white)](#better-web-orioks)
 [![Edge](https://img.shields.io/badge/Edge_|_скоро-0078D7?style=flat&logo=Microsoft-edge&logoColor=white)](#better-web-orioks)
 [![Built with Codeium](https://codeium.com/badges/main)](https://codeium.com)
@@ -27,7 +27,7 @@
   подскругляет углы у откровенно прямоугольных элементов
 
 <details>
-<summary style="font-size: large; font-weight: bold">Скриншоты [с Dark Reader]</summary>
+<summary style="font-size: large; font-weight: bold">Скриншоты</summary>
 
 - Главная страница (новости)
 ![Главная страница](screenshots/main-page.png)

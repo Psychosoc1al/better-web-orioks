@@ -303,15 +303,18 @@ const parseExamDate = function (examDate, examTime) {
 /**
  * Waits for the element to appear to start the script
  *
- * @param selector - The CSS selector of the element
+ * @param {Array<string>} selectors - The CSS selector of the element
  * @return {Promise<void>} A promise to be resolved when the element is found
  */
-const waitForElement = function (selector) {
+const waitForElement = function (selectors) {
     return new Promise((resolve) => {
-        if (document.querySelector(selector)) return resolve();
+        if (selectors.every((selector) => document.querySelector(selector)))
+            return resolve();
 
         const observer = new MutationObserver(() => {
-            if (document.querySelector(selector)) {
+            if (
+                selectors.every((selector) => document.querySelector(selector))
+            ) {
                 observer.disconnect();
                 resolve();
             }
@@ -335,7 +338,7 @@ const checkUpdates = () =>
  * Executes the necessary actions when the page is opened.
  */
 const onPageOpen = function () {
-    waitForElement("#forang").then(() => {
+    waitForElement(['select[name="student_id"] option', "#forang"]).then(() => {
         updateGrades();
         setSchedule();
         checkUpdates();
