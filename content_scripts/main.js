@@ -6,6 +6,7 @@ try {
     // noinspection JSUnresolvedReference
     metabrowser = chrome;
 }
+const hourLength = 1000 * 60 * 60;
 
 // noinspection JSUnresolvedReference
 /**
@@ -200,11 +201,7 @@ const setExamsSchedule = function () {
     const disciplines = jsonData["dises"];
     const schedule = [];
 
-    let currentDate = new Date();
-    let utcDate = new Date(
-        currentDate.getTime() + currentDate.getTimezoneOffset() * 60 * 1000,
-    );
-    currentDate = new Date(utcDate.getTime() + 3 * 60 * 60 * 1000);
+    let currentDateTime = Date.now();
 
     for (const element of disciplines) {
         const controlForm = element["formControl"]["name"];
@@ -216,27 +213,26 @@ const setExamsSchedule = function () {
         );
 
         const examName = element["name"];
-        const consDate = parseExamDate(
+        const consDateTime = parseExamUTCDateTime(
             element["date_cons"],
             element["time_cons"],
         );
-        const examDate = parseExamDate(
+        const examDateTime = parseExamUTCDateTime(
             element["date_exam"],
             element["time_exam"],
         );
 
-        if (currentDate < consDate)
+        const timeConvertOptions = {
+            weekday: "long",
+            day: "2-digit",
+            month: "2-digit",
+            timeZone: "Europe/Moscow",
+        };
+
+        if (currentDateTime - hourLength < consDateTime)
             schedule.push([
-                consDate.toLocaleDateString("ru", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "2-digit",
-                }) +
-                    (consDate.getDate() - currentDate.getDate()
-                        ? ` (дней: ${
-                              consDate.getDate() - currentDate.getDate()
-                          })`
-                        : ` (сегодня)`),
+                consDateTime.toLocaleDateString("ru", timeConvertOptions) +
+                    getTimeLeftString(currentDateTime, consDateTime),
                 [
                     {
                         name: `${examName}\n` + teachersString,
@@ -245,21 +241,13 @@ const setExamsSchedule = function () {
                         time: element["time_cons"],
                     },
                 ],
-                consDate,
+                consDateTime,
             ]);
 
-        if (currentDate < examDate)
+        if (currentDateTime - 2 * hourLength < examDateTime) {
             schedule.push([
-                examDate.toLocaleDateString("ru", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "2-digit",
-                }) +
-                    (examDate.getDate() - currentDate.getDate()
-                        ? ` (дней: ${
-                              examDate.getDate() - currentDate.getDate()
-                          })`
-                        : ` (сегодня)`),
+                examDateTime.toLocaleDateString("ru", timeConvertOptions) +
+                    getTimeLeftString(currentDateTime, examDateTime),
                 [
                     {
                         name: `${examName}\n` + teachersString,
@@ -268,8 +256,9 @@ const setExamsSchedule = function () {
                         time: element["time_exam"],
                     },
                 ],
-                examDate,
+                examDateTime,
             ]);
+        }
     }
 
     schedule.sort((a, b) => a[2] - b[2]);
@@ -285,7 +274,7 @@ const setExamsSchedule = function () {
  * @param examTime - The original time
  * @return {Date} The converted date
  */
-const parseExamDate = function (examDate, examTime) {
+const parseExamUTCDateTime = function (examDate, examTime) {
     // prettier-ignore
     const monthStringToNumber = {
         "января": 0,
@@ -297,7 +286,34 @@ const parseExamDate = function (examDate, examTime) {
     const [day, monthString, year] = examDate.split(" ");
     const [hour, minute] = examTime.split(":");
 
-    return new Date(year, monthStringToNumber[monthString], day, hour, minute);
+    // To use time in GMT+3
+    return new Date(
+        Date.UTC(year, monthStringToNumber[monthString], day, hour, minute) -
+            3 * hourLength,
+    );
+};
+
+/**
+ * Counts the time until the event and returns the time left string or an empty string
+ * if it's less than an hour left
+ *
+ * @param {number} now - The current timestamp
+ * @param {Date|number} event - The event {@link Date} object or timestamp
+ * @return {string} The time left string or an empty string
+ */
+const getTimeLeftString = function (now, event) {
+    let timeLeft = event - now;
+
+    if (timeLeft > hourLength) {
+        const days = Math.floor(timeLeft / (hourLength * 24));
+        const hours = Math.floor(
+            (timeLeft - days * hourLength * 24) / hourLength,
+        );
+
+        return ` (осталось: ${days ? days + "д. " : ""}${hours}ч.)`;
+    }
+
+    return "";
 };
 
 /**

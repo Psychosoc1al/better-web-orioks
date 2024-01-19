@@ -6,6 +6,7 @@ try {
     // noinspection JSUnresolvedReference
     metabrowser = chrome;
 }
+const dayLength = 1000 * 60 * 60 * 24;
 
 // noinspection JSUnresolvedReference
 /**
@@ -123,9 +124,6 @@ const getClosestLessons = function (
             (lesson) =>
                 lesson.dayNumber === searchDayNumber &&
                 lesson.weekNumber === searchWeekNumber &&
-                // (currentDayNumber === searchDayNumber
-                //     ? lesson.endTime >= currentTime
-                //     : true) &&
                 !lesson.teacher.includes("УВЦ"),
         );
     }
@@ -330,7 +328,7 @@ metabrowser.runtime.onInstalled.addListener(onAction);
 metabrowser.runtime.onMessage.addListener((request) => {
     if (request.action === "checkUpdates")
         loadValueByKey("updateTime").then((timestamp) => {
-            if (Date.now() - timestamp > 1000 * 60 * 60 * 6) onAction();
+            if (Date.now() - timestamp > dayLength / 4) onAction();
         });
 });
 
