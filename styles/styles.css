@@ -98,7 +98,8 @@ td div.w46 {
     text-align: center;
 }
 
-#w0 {
+#w0,
+#w1 {
     z-index: 2;
 }
 

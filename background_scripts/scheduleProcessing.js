@@ -6,7 +6,10 @@ try {
     // noinspection JSUnresolvedReference
     metabrowser = chrome;
 }
-const dayLength = 1000 * 60 * 60 * 24;
+const hourLength = 1000 * 60 * 60;
+const updateCheckPeriod = hourLength * 6;
+let group;
+let documentHTML;
 
 // noinspection JSUnresolvedReference
 /**
@@ -28,8 +31,6 @@ const saveKeyValue = (key, value) =>
 const loadValueByKey = (key) =>
     metabrowser.storage.local.get(key).then((res) => res[key]);
 
-let group;
-
 /**
  * Sends a request to the schedule server
  *
@@ -46,6 +47,27 @@ const sendRequest = function (url, method) {
         body: method === "POST" ? `group=${group}` : undefined,
         credentials: "include",
     }).then((response) => response.text());
+};
+
+/**
+ * Gets the group by sending a request and saves it with the original HTML
+ *
+ * @return {Promise<boolean>} A promise that resolves with true if the group was successfully set
+ */
+const setGroupAndHTML = function () {
+    if (group) return Promise.resolve(true);
+
+    return sendRequest("https://orioks.miet.ru/student/student", "GET").then(
+        (responseText) => {
+            documentHTML = responseText;
+
+            group = new RegExp(/selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/).exec(
+                responseText,
+            )[1];
+
+            return true;
+        },
+    );
 };
 
 /**
@@ -246,36 +268,116 @@ const parseSchedule = function () {
  *
  * @return {Promise<boolean>} True if there is a new schedule
  */
-const updateSchedule = function () {
-    return sendRequest("https://orioks.miet.ru/student/student", "GET").then(
-        (responseText) => {
-            group = new RegExp(/selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/).exec(
-                responseText,
-            )[1];
+const updateSchedule = async function () {
+    const isExamsTime = new RegExp(/<\/span> Сессия<\/a><\/li>/).exec(
+        documentHTML,
+    );
+    if (isExamsTime) return Promise.resolve(false);
 
-            const isExamsTime = new RegExp(/<\/span> Сессия<\/a><\/li>/).exec(
-                responseText,
-            );
-            if (isExamsTime) return Promise.resolve(false);
+    saveKeyValue(group + "-examsUpdateTime", Number.MAX_VALUE);
+    return getNewSchedule().then((newSchedule) =>
+        loadValueByKey(group + "-orig").then((oldSchedule) => {
+            if (
+                newSchedule &&
+                Object.keys(newSchedule).length &&
+                JSON.stringify(newSchedule) !== JSON.stringify(oldSchedule)
+            ) {
+                saveKeyValue(group + "-orig", newSchedule).then(() =>
+                    saveKeyValue(group + "-updateTime", Date.now()),
+                );
+                return true;
+            }
 
-            return getNewSchedule().then((newSchedule) =>
-                loadValueByKey(group + "-orig").then((oldSchedule) => {
-                    if (
-                        newSchedule &&
-                        Object.keys(newSchedule).length &&
-                        JSON.stringify(newSchedule) !==
-                            JSON.stringify(oldSchedule)
-                    ) {
-                        saveKeyValue(group + "-orig", newSchedule).then(() =>
-                            saveKeyValue("updateTime", Date.now()),
-                        );
-                        return true;
-                    }
+            return false;
+        }),
+    );
+};
 
-                    return false;
-                }),
-            );
-        },
+/**
+ * Gets the exams schedule if it is session time
+ */
+const updateExamsSchedule = function () {
+    const source = new RegExp(/id=["']forang["'].*>(.*)<\/div>/).exec(
+        documentHTML,
+    )[1];
+    const jsonData = JSON.parse(source);
+    const disciplines = jsonData["dises"];
+    const schedule = [];
+
+    for (const element of disciplines) {
+        const controlForm = element["formControl"]["name"];
+        if (controlForm !== "Экзамен") continue;
+
+        let teachersString = "";
+        element["preps"].forEach(
+            (teacher) => (teachersString += `► ${teacher["name"]}\n`),
+        );
+
+        const examName = element["name"];
+        const consDateTime = parseExamUTCDateTime(
+            element["date_cons"],
+            element["time_cons"],
+        );
+        const examDateTime = parseExamUTCDateTime(
+            element["date_exam"],
+            element["time_exam"],
+        );
+
+        schedule.push([
+            [
+                {
+                    name: `${examName}\n` + teachersString,
+                    type: "Конс",
+                    location: element["room_cons"],
+                    time: element["time_cons"],
+                },
+            ],
+            consDateTime.valueOf(),
+        ]);
+
+        schedule.push([
+            [
+                {
+                    name: `${examName}\n` + teachersString,
+                    type: "Экз",
+                    location: element["room_exam"],
+                    time: element["time_exam"],
+                },
+            ],
+            examDateTime.valueOf(),
+        ]);
+    }
+
+    schedule.sort((a, b) => a[1] - b[1]);
+
+    saveKeyValue(group + "-exams", schedule).then(() =>
+        saveKeyValue(group + "-examsUpdateTime", Date.now()),
+    );
+};
+
+/**
+ * Converts the exam date to the {@link Date} object
+ *
+ * @param examDate - The original date
+ * @param examTime - The original time
+ * @return {Date} The converted date
+ */
+const parseExamUTCDateTime = function (examDate, examTime) {
+    // prettier-ignore
+    const monthStringToNumber = {
+        "января": 0,
+        "февраля": 1,
+        "июня": 5,
+        "июля": 6,
+    };
+
+    const [day, monthString, year] = examDate.split(" ");
+    const [hour, minute] = examTime.split(":");
+
+    // To use time in GMT+3
+    return new Date(
+        Date.UTC(year, monthStringToNumber[monthString], day, hour, minute) -
+            3 * hourLength,
     );
 };
 
@@ -310,11 +412,25 @@ const getNewSchedule = function () {
  * Does the whole magic
  */
 const onAction = function () {
-    updateSchedule().then((updated) => {
-        if (updated)
-            parseSchedule().then((parsedSchedule) =>
-                countSchedule(parsedSchedule),
-            );
+    console.log(Date.now());
+    setGroupAndHTML().then(() => {
+        loadValueByKey(group + "-updateTime").then((timestamp) => {
+            if (Date.now() - timestamp > updateCheckPeriod || !timestamp)
+                updateSchedule().then((updated) => {
+                    if (updated)
+                        parseSchedule().then((parsedSchedule) =>
+                            countSchedule(parsedSchedule),
+                        );
+                });
+        });
+
+        loadValueByKey(group + "-examsUpdateTime").then((examsTimestamp) => {
+            if (
+                Date.now() - examsTimestamp > updateCheckPeriod ||
+                !examsTimestamp
+            )
+                updateExamsSchedule();
+        });
     });
 };
 
@@ -325,11 +441,8 @@ metabrowser.runtime.onStartup.addListener(onAction);
 metabrowser.runtime.onInstalled.addListener(onAction);
 
 // noinspection JSUnresolvedReference,JSDeprecatedSymbols
-metabrowser.runtime.onMessage.addListener((request) => {
-    if (request.action === "checkUpdates")
-        loadValueByKey("updateTime").then((timestamp) => {
-            if (Date.now() - timestamp > dayLength / 4) onAction();
-        });
+metabrowser.runtime.onMessage.addListener(async (request) => {
+    if (request.action === "checkUpdates") onAction();
 });
 
 // metabrowser.storage.local.clear();

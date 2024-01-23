@@ -89,7 +89,14 @@
 
 ---
 
+### Минутка рекомендаций:
+
+- Рекомендую обратить внимание на [вот этот проект](https://github.com/luntikius/BetterOrioks), прокачанный ОРИОКС в виде приложения для Android, 
+  авторы отлично поработали
+
+---
+
 ### Контакты:
 
 - **Предложения, ошибки, вопросы**: [GitHub Issues](https://github.com/Psychosoc1al/better-web-orioks/issues)
-- **Telegram на крайний случай**: [@TTa3lCblJlou](https://t.me/TTa3lCblJlou) _(это типа пажылой...)_
+- **Личное общение**: [TG: @thePsychosoc1al](https://t.me/thePsychosoc1al)

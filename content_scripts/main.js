@@ -102,7 +102,7 @@ const setSchedule = function () {
 
     const currentWeekElement = document.querySelector(".small");
     if (!currentWeekElement) {
-        setExamsSchedule();
+        setExamsSchedule(group);
         return;
     }
 
@@ -112,11 +112,10 @@ const setSchedule = function () {
             .split(" ")
             .slice(3)
             .join(" ");
-    // const stringCurrentWeek = "1 знаменатель";
 
     loadValueByKey(group).then((fullSchedule) => {
         if (Object.keys(fullSchedule).length === 0) {
-            setExamsSchedule();
+            setExamsSchedule(group);
             return;
         }
 
@@ -194,103 +193,39 @@ const setSchedule = function () {
 
 /**
  * Gets the exams schedule if it is session time
+ *
+ * @param {string} group - The current group
  */
-const setExamsSchedule = function () {
+const setExamsSchedule = function (group) {
     const source = document.querySelector("#forang");
     const jsonData = JSON.parse(source.textContent);
-    const disciplines = jsonData["dises"];
     const schedule = [];
-
+    const timeConvertOptions = {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Europe/Moscow",
+    };
     let currentDateTime = Date.now();
 
-    for (const element of disciplines) {
-        const controlForm = element["formControl"]["name"];
-        if (controlForm !== "Экзамен") continue;
+    loadValueByKey(group + "-exams").then((examsSchedule) => {
+        for (const day of examsSchedule) {
+            const dayDateTime = new Date(day[1]);
 
-        let teachersString = "";
-        element["preps"].forEach(
-            (teacher) => (teachersString += `► ${teacher["name"]}\n`),
-        );
+            if (currentDateTime - hourLength < dayDateTime) {
+                // noinspection JSUnresolvedReference
+                day.unshift(
+                    dayDateTime.toLocaleDateString("ru", timeConvertOptions) +
+                        getTimeLeftString(currentDateTime, dayDateTime),
+                );
 
-        const examName = element["name"];
-        const consDateTime = parseExamUTCDateTime(
-            element["date_cons"],
-            element["time_cons"],
-        );
-        const examDateTime = parseExamUTCDateTime(
-            element["date_exam"],
-            element["time_exam"],
-        );
-
-        const timeConvertOptions = {
-            weekday: "long",
-            day: "2-digit",
-            month: "2-digit",
-            timeZone: "Europe/Moscow",
-        };
-
-        if (currentDateTime - hourLength < consDateTime)
-            schedule.push([
-                consDateTime.toLocaleDateString("ru", timeConvertOptions) +
-                    getTimeLeftString(currentDateTime, consDateTime),
-                [
-                    {
-                        name: `${examName}\n` + teachersString,
-                        type: "Конс",
-                        location: element["room_cons"],
-                        time: element["time_cons"],
-                    },
-                ],
-                consDateTime,
-            ]);
-
-        if (currentDateTime - 2 * hourLength < examDateTime) {
-            schedule.push([
-                examDateTime.toLocaleDateString("ru", timeConvertOptions) +
-                    getTimeLeftString(currentDateTime, examDateTime),
-                [
-                    {
-                        name: `${examName}\n` + teachersString,
-                        type: "Экз",
-                        location: element["room_exam"],
-                        time: element["time_exam"],
-                    },
-                ],
-                examDateTime,
-            ]);
+                schedule.push(day);
+            }
         }
-    }
 
-    schedule.sort((a, b) => a[2] - b[2]);
-
-    jsonData["schedule"] = schedule;
-    source.textContent = JSON.stringify(jsonData);
-};
-
-/**
- * Converts the exam date to the {@link Date} object
- *
- * @param examDate - The original date
- * @param examTime - The original time
- * @return {Date} The converted date
- */
-const parseExamUTCDateTime = function (examDate, examTime) {
-    // prettier-ignore
-    const monthStringToNumber = {
-        "января": 0,
-        "февраля": 1,
-        "июня": 5,
-        "июля": 6,
-    };
-
-    const [day, monthString, year] = examDate.split(" ");
-    const [hour, minute] = examTime.split(":");
-
-    // To use time in GMT+3
-    return new Date(
-        Date.UTC(year, monthStringToNumber[monthString], day, hour, minute) -
-            3 * hourLength,
-    );
+        jsonData["schedule"] = schedule;
+        source.textContent = JSON.stringify(jsonData);
+    });
 };
 
 /**
