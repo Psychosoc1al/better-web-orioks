@@ -1,17 +1,13 @@
-let metabrowser;
+let metabrowser = chrome;
 try {
     // noinspection JSUnresolvedReference
     metabrowser = browser;
-} catch (e) {
-    // noinspection JSUnresolvedReference
-    metabrowser = chrome;
-}
+} catch (e) {}
 const hourLength = 1000 * 60 * 60;
 const updateCheckPeriod = hourLength * 6;
-let group;
-let documentHTML;
 
-// noinspection JSUnresolvedReference
+let infoObject;
+
 /**
  * Save a key-value pair to the storage
  *
@@ -21,7 +17,6 @@ let documentHTML;
 const saveKeyValue = (key, value) =>
     metabrowser.storage.local.set({ [key]: value });
 
-// noinspection JSUnresolvedReference
 /**
  * Retrieves the value associated with the given key
  *
@@ -36,36 +31,100 @@ const loadValueByKey = (key) =>
  *
  * @param {string} url - The URL to send the request to
  * @param {string} method - The request method
+ * @param {string} group - The group to get schedule if needed
  * @return {Promise<string>} A promise that resolves with the response text
  */
-const sendRequest = function (url, method) {
+const sendRequest = function (url, method, group = "") {
     return fetch(url, {
         method: method,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: method === "POST" ? `group=${group}` : undefined,
+        body: group ? `group=${group}` : undefined,
         credentials: "include",
     }).then((response) => response.text());
 };
 
 /**
- * Gets the group by sending a request and saves it with the original HTML
+ * Gets the group by sending a request and saving the basic information to process
  *
- * @return {Promise<boolean>} A promise that resolves with true if the group was successfully set
+ * @param {boolean} forceUpdate - Whether to force an update
+ * @return {Promise<Object>} The object containing all the needed information
  */
-const setGroupAndHTML = function () {
-    if (group) return Promise.resolve(true);
+const getAllInformation = function (forceUpdate = false) {
+    return loadValueByKey("info").then((info) => {
+        if (
+            !forceUpdate &&
+            info &&
+            Date.now() - info.updateTime < updateCheckPeriod
+        )
+            return info;
 
-    return sendRequest("https://orioks.miet.ru/student/student", "GET").then(
+        return sendRequest(
+            "https://orioks.miet.ru/student/student",
+            "GET",
+        ).then((responseText) => {
+            const newGroup = new RegExp(
+                /selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/,
+            ).exec(responseText)[1];
+
+            const newIsExamsTime = !!new RegExp(
+                /<\/span> Сессия<\/a><\/li>/,
+            ).exec(responseText);
+
+            if (newIsExamsTime) {
+                const newOriginalSchedule = JSON.parse(
+                    new RegExp(/id=["']forang["'].*>(.*)<\/div>/).exec(
+                        responseText,
+                    )[1],
+                );
+
+                return {
+                    group: newGroup,
+                    updateTime: Date.now(),
+                    isExamsTime: newIsExamsTime,
+                    originalSchedule: newOriginalSchedule,
+                };
+            }
+
+            return getNewSchedule(newGroup).then((newOriginalSchedule) => {
+                return {
+                    group: newGroup,
+                    updateTime: Date.now(),
+                    isExamsTime: newIsExamsTime,
+                    originalSchedule: newOriginalSchedule,
+                };
+            });
+        });
+    });
+};
+
+/**
+ * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
+ *
+ * @param {string} group - The group to get schedule for
+ * @return {Promise<Object>} A JSON object containing the schedule
+ */
+const getNewSchedule = function (group) {
+    return sendRequest("https://miet.ru/schedule/data", "POST", group).then(
         (responseText) => {
-            documentHTML = responseText;
+            const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
+            if (cookie) {
+                // noinspection JSIgnoredPromiseFromCall
+                metabrowser.cookies.set({
+                    url: "https://miet.ru/",
+                    name: "wl",
+                    value: cookie[1],
+                });
 
-            group = new RegExp(/selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/).exec(
-                responseText,
-            )[1];
+                return sendRequest(
+                    "https://miet.ru/schedule/data",
+                    "POST",
+                    group,
+                ).then((responseText) => JSON.parse(responseText));
+            }
 
-            return true;
+            return JSON.parse(responseText);
         },
     );
 };
@@ -100,7 +159,7 @@ const countSchedule = function (parsedSchedule) {
         fullSchedule[weekString].unshift(sundaySchedule);
     }
 
-    saveKeyValue(group, fullSchedule);
+    return fullSchedule;
 };
 
 /**
@@ -228,79 +287,44 @@ const collapseDuplicatedLessons = function (closestDays) {
 /**
  * Parses the schedule data received from the server
  *
- * @return {Promise<Array<Object>>} An array of parsed and formatted schedule elements
+ * @return {Array<Object>} An array of parsed and formatted schedule elements
  */
 const parseSchedule = function () {
-    return loadValueByKey(`${group}-orig`).then((schedule) => {
-        const parsedSchedule = [];
+    const parsedSchedule = [];
 
-        for (const scheduleElement of schedule["Data"]) {
-            const parsedElement = {};
+    for (const scheduleElement of infoObject.originalSchedule["Data"]) {
+        const parsedElement = {};
 
-            parsedElement["name"] = scheduleElement["Class"]["Name"];
-            parsedElement["teacher"] = scheduleElement["Class"]["TeacherFull"];
-            parsedElement["dayNumber"] = scheduleElement["Day"];
-            parsedElement["weekNumber"] = scheduleElement["DayNumber"];
-            parsedElement["room"] = scheduleElement["Room"]["Name"];
-            parsedElement["lessonNumber"] = scheduleElement["Time"]["Time"];
-            parsedElement["startTime"] = new Date(
-                scheduleElement["Time"]["TimeFrom"],
-            ).toLocaleTimeString("ru", {
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-            parsedElement["endTime"] = new Date(
-                scheduleElement["Time"]["TimeTo"],
-            ).toLocaleTimeString("ru", {
-                hour: "2-digit",
-                minute: "2-digit",
-            });
+        parsedElement["name"] = scheduleElement["Class"]["Name"];
+        parsedElement["teacher"] = scheduleElement["Class"]["TeacherFull"];
+        parsedElement["dayNumber"] = scheduleElement["Day"];
+        parsedElement["weekNumber"] = scheduleElement["DayNumber"];
+        parsedElement["room"] = scheduleElement["Room"]["Name"];
+        parsedElement["lessonNumber"] = scheduleElement["Time"]["Time"];
+        parsedElement["startTime"] = new Date(
+            scheduleElement["Time"]["TimeFrom"],
+        ).toLocaleTimeString("ru", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+        parsedElement["endTime"] = new Date(
+            scheduleElement["Time"]["TimeTo"],
+        ).toLocaleTimeString("ru", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
 
-            parsedSchedule.push(parsedElement);
-        }
+        parsedSchedule.push(parsedElement);
+    }
 
-        return parsedSchedule;
-    });
-};
-
-/**
- * Checks if there is a new schedule and updates the storaged one if needed
- *
- * @return {Promise<boolean>} True if there is a new schedule
- */
-const updateSchedule = async function () {
-    const isExamsTime = new RegExp(/<\/span> Сессия<\/a><\/li>/).exec(
-        documentHTML,
-    );
-    if (isExamsTime) return Promise.resolve(false);
-
-    saveKeyValue(group + "-examsUpdateTime", Number.MAX_VALUE);
-    return getNewSchedule().then((newSchedule) =>
-        loadValueByKey(group + "-orig").then((oldSchedule) => {
-            if (
-                newSchedule &&
-                Object.keys(newSchedule).length &&
-                JSON.stringify(newSchedule) !== JSON.stringify(oldSchedule)
-            ) {
-                saveKeyValue(group + "-orig", newSchedule).then(() =>
-                    saveKeyValue(group + "-updateTime", Date.now()),
-                );
-                return true;
-            }
-
-            return false;
-        }),
-    );
+    return parsedSchedule;
 };
 
 /**
  * Gets the exams schedule if it is session time
  */
 const updateExamsSchedule = function () {
-    const source = new RegExp(/id=["']forang["'].*>(.*)<\/div>/).exec(
-        documentHTML,
-    )[1];
-    const jsonData = JSON.parse(source);
+    const jsonData = infoObject.originalSchedule;
     const disciplines = jsonData["dises"];
     const schedule = [];
 
@@ -350,9 +374,7 @@ const updateExamsSchedule = function () {
 
     schedule.sort((a, b) => a[1] - b[1]);
 
-    saveKeyValue(group + "-exams", schedule).then(() =>
-        saveKeyValue(group + "-examsUpdateTime", Date.now()),
-    );
+    return schedule;
 };
 
 /**
@@ -382,67 +404,30 @@ const parseExamUTCDateTime = function (examDate, examTime) {
 };
 
 /**
- * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
+ * Starts the whole magic
  *
- * @return {Promise<Object>} A JSON object containing the schedule
+ * @param {boolean} forceUpdate - Whether to force an update
  */
-const getNewSchedule = function () {
-    return sendRequest("https://miet.ru/schedule/data", "POST").then(
-        (responseText) => {
-            const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
-            if (cookie) {
-                // noinspection JSUnresolvedReference
-                metabrowser.cookies.set({
-                    url: "https://miet.ru/schedule/data",
-                    name: "wl",
-                    value: cookie[1],
-                });
-                return sendRequest(
-                    "https://miet.ru/schedule/data",
-                    "POST",
-                ).then((responseText) => JSON.parse(responseText));
-            }
+const onAction = function (forceUpdate = false) {
+    getAllInformation(forceUpdate === true).then((info) => {
+        infoObject = info;
 
-            return JSON.parse(responseText);
-        },
-    );
-};
+        if (!infoObject.countedSchedule) {
+            infoObject.countedSchedule = infoObject.isExamsTime
+                ? updateExamsSchedule()
+                : countSchedule(parseSchedule());
 
-/**
- * Does the whole magic
- */
-const onAction = function () {
-    console.log(Date.now());
-    setGroupAndHTML().then(() => {
-        loadValueByKey(group + "-updateTime").then((timestamp) => {
-            if (Date.now() - timestamp > updateCheckPeriod || !timestamp)
-                updateSchedule().then((updated) => {
-                    if (updated)
-                        parseSchedule().then((parsedSchedule) =>
-                            countSchedule(parsedSchedule),
-                        );
-                });
-        });
-
-        loadValueByKey(group + "-examsUpdateTime").then((examsTimestamp) => {
-            if (
-                Date.now() - examsTimestamp > updateCheckPeriod ||
-                !examsTimestamp
-            )
-                updateExamsSchedule();
-        });
+            saveKeyValue("info", infoObject);
+        }
     });
 };
 
-// noinspection JSUnresolvedReference,JSDeprecatedSymbols
 metabrowser.runtime.onStartup.addListener(onAction);
 
-// noinspection JSUnresolvedReference,JSDeprecatedSymbols
 metabrowser.runtime.onInstalled.addListener(onAction);
 
-// noinspection JSUnresolvedReference,JSDeprecatedSymbols
-metabrowser.runtime.onMessage.addListener(async (request) => {
-    if (request.action === "checkUpdates") onAction();
+metabrowser.runtime.onMessage.addListener((request) => {
+    if (request.action === "checkUpdates") onAction(request.force);
 });
 
 // metabrowser.storage.local.clear();
