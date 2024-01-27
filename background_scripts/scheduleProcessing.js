@@ -49,12 +49,18 @@ const sendRequest = function (url, method, group = "") {
  * Gets the group by sending a request and saving the basic information to process
  *
  * @param {boolean} forceUpdate - Whether to force an update
+ * @param {boolean} isSemesterChange - Whether there is no exams left but the semester
+ * hasn't yet changed
  * @return {Promise<Object>} The object containing all the needed information
  */
-const getAllInformation = function (forceUpdate = false) {
+const getAllInformation = function (
+    forceUpdate = false,
+    isSemesterChange = false,
+) {
     return loadValueByKey("info").then((info) => {
         if (
             !forceUpdate &&
+            !isSemesterChange &&
             info &&
             Date.now() - info.updateTime < updateCheckPeriod
         )
@@ -72,6 +78,32 @@ const getAllInformation = function (forceUpdate = false) {
                 /<\/span> Сессия<\/a><\/li>/,
             ).exec(responseText);
 
+            if (isSemesterChange) {
+                const semesterCheckString =
+                    new Date().getMonth() < 6 ? "Весенний" : "Осенний";
+                if (info) info.updateTime = Date.now();
+
+                return getNewSchedule(newGroup).then((newOriginalSchedule) =>
+                    newOriginalSchedule["Semestr"].includes(
+                        semesterCheckString,
+                    ) || !info
+                        ? {
+                              group: newGroup,
+                              updateTime: Date.now(),
+                              isExamsTime: false,
+                              originalSchedule: newOriginalSchedule,
+                              countedSchedule:
+                                  !forceUpdate &&
+                                  JSON.stringify(newOriginalSchedule) ===
+                                      JSON.stringify(info?.originalSchedule)
+                                      ? info.countedSchedule
+                                      : undefined,
+                              isSemesterChange: true,
+                          }
+                        : info,
+                );
+            }
+
             if (newIsExamsTime) {
                 const newOriginalSchedule = JSON.parse(
                     new RegExp(/id=["']forang["'].*>(.*)<\/div>/).exec(
@@ -84,6 +116,13 @@ const getAllInformation = function (forceUpdate = false) {
                     updateTime: Date.now(),
                     isExamsTime: newIsExamsTime,
                     originalSchedule: newOriginalSchedule,
+                    countedSchedule:
+                        !forceUpdate &&
+                        JSON.stringify(newOriginalSchedule) ===
+                            JSON.stringify(info?.originalSchedule)
+                            ? info.countedSchedule
+                            : undefined,
+                    isSemesterChange: false,
                 };
             }
 
@@ -93,6 +132,13 @@ const getAllInformation = function (forceUpdate = false) {
                     updateTime: Date.now(),
                     isExamsTime: newIsExamsTime,
                     originalSchedule: newOriginalSchedule,
+                    countedSchedule:
+                        !forceUpdate &&
+                        JSON.stringify(newOriginalSchedule) ===
+                            JSON.stringify(info?.originalSchedule)
+                            ? info.countedSchedule
+                            : undefined,
+                    isSemesterChange: false,
                 };
             });
         });
@@ -106,27 +152,21 @@ const getAllInformation = function (forceUpdate = false) {
  * @return {Promise<Object>} A JSON object containing the schedule
  */
 const getNewSchedule = function (group) {
-    return sendRequest("https://miet.ru/schedule/data", "POST", group).then(
-        (responseText) => {
+    return sendRequest("https://miet.ru/schedule/data", "POST", group)
+        .then((responseText) => {
             const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
-            if (cookie) {
-                // noinspection JSIgnoredPromiseFromCall
-                metabrowser.cookies.set({
-                    url: "https://miet.ru/",
-                    name: "wl",
-                    value: cookie[1],
-                });
+            if (!cookie) return Promise.resolve(responseText);
 
-                return sendRequest(
-                    "https://miet.ru/schedule/data",
-                    "POST",
-                    group,
-                ).then((responseText) => JSON.parse(responseText));
-            }
+            // noinspection JSIgnoredPromiseFromCall
+            metabrowser.cookies.set({
+                url: "https://miet.ru/",
+                name: "wl",
+                value: cookie[1],
+            });
 
-            return JSON.parse(responseText);
-        },
-    );
+            return sendRequest("https://miet.ru/schedule/data", "POST", group);
+        })
+        .then((responseText) => JSON.parse(responseText));
 };
 
 /**
@@ -151,9 +191,11 @@ const countSchedule = function (parsedSchedule) {
             );
 
     const weekStrings = Object.keys(fullSchedule);
-    for (let [weekNum, weekString] of weekStrings.entries()) {
+    for (const [weekNum, weekString] of weekStrings.entries()) {
         const sundaySchedule = structuredClone(
-            fullSchedule[weekStrings[(weekNum + 1) % 4]][0],
+            fullSchedule[weekStrings[(weekNum + 1) % 4]][
+                Math.floor((weekNum + 1) / 4)
+            ],
         );
         sundaySchedule.forEach((day) => (day.dateOffset += 1));
         fullSchedule[weekString].unshift(sundaySchedule);
@@ -179,12 +221,11 @@ const getClosestLessons = function (
     daysOffset = 0,
     weekChanged = false,
 ) {
-    let currentDayNumber = startDay + daysOffset;
-    let searchDayNumber = currentDayNumber - 1;
+    let searchDayNumber = startDay + daysOffset - 1;
     let closestLessons = [];
     let nextOffset = daysOffset;
 
-    if (currentDayNumber === 0) {
+    if (searchDayNumber === -1) {
         searchWeekNumber = ++searchWeekNumber % 4;
         searchDayNumber = 0;
         nextOffset++;
@@ -205,7 +246,7 @@ const getClosestLessons = function (
             (lesson) =>
                 lesson.dayNumber === searchDayNumber &&
                 lesson.weekNumber === searchWeekNumber &&
-                !lesson.teacher.includes("УВЦ"),
+                !lesson.name.includes("УВЦ"),
         );
     }
 
@@ -260,17 +301,19 @@ const collapseDuplicatedLessons = function (closestDays) {
 
             if (lessonCount > 1) {
                 currentLesson = day.lessons[currentLessonNumber];
-                let name = currentLesson.name;
-                let amountPart = `(${lessonCount} пар${
+                const amountPart = ` (${lessonCount} пар${
                     lessonCount < 5 ? "ы" : ""
                 })`;
 
-                if (name.indexOf("[") !== -1)
-                    name = name.replace("[", amountPart + " [");
-                else name += amountPart;
-
-                currentLesson.name = name;
+                currentLesson.name = currentLesson.name.replace(
+                    "\n",
+                    amountPart + " \n",
+                );
                 currentLesson.endTime = day.lessons[i].endTime;
+                currentLesson.time = currentLesson.time.replace(
+                    /\n\d\d:\d\d.*/,
+                    "\n" + day.lessons[i].endTime,
+                );
                 collapsedLessons.push(currentLesson);
             } else collapsedLessons.push(day.lessons[i]);
 
@@ -295,24 +338,39 @@ const parseSchedule = function () {
     for (const scheduleElement of infoObject.originalSchedule["Data"]) {
         const parsedElement = {};
 
-        parsedElement["name"] = scheduleElement["Class"]["Name"];
-        parsedElement["teacher"] = scheduleElement["Class"]["TeacherFull"];
+        const lessonOriginalName = scheduleElement["Class"]["Name"];
+        const lessonTypeMatch = lessonOriginalName.match(/\[(.*)]/);
+        let lessonType = "";
+        let lessonName;
+
+        if (lessonTypeMatch) {
+            lessonName = lessonOriginalName.match(/(.*) \[/)[1];
+            lessonType = lessonTypeMatch[1];
+        } else lessonName = lessonOriginalName;
+
+        lessonName = `${lessonName}
+                      ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
+
+        parsedElement["name"] = lessonName;
+        parsedElement["type"] = lessonType;
         parsedElement["dayNumber"] = scheduleElement["Day"];
         parsedElement["weekNumber"] = scheduleElement["DayNumber"];
-        parsedElement["room"] = scheduleElement["Room"]["Name"];
+        parsedElement["location"] = scheduleElement["Room"]["Name"];
         parsedElement["lessonNumber"] = scheduleElement["Time"]["Time"];
-        parsedElement["startTime"] = new Date(
-            scheduleElement["Time"]["TimeFrom"],
-        ).toLocaleTimeString("ru", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-        parsedElement["endTime"] = new Date(
-            scheduleElement["Time"]["TimeTo"],
-        ).toLocaleTimeString("ru", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        parsedElement["startTime"] = scheduleElement["Time"]["TimeFrom"]
+            .split("T")[1]
+            .slice(0, 5);
+
+        if (parsedElement["startTime"] === "12:00") {
+            parsedElement["startTime"] = "12:00/30";
+            parsedElement["endTime"] = "13:50/20";
+        } else
+            parsedElement["endTime"] = scheduleElement["Time"]["TimeTo"]
+                .split("T")[1]
+                .slice(0, 5);
+
+        parsedElement["time"] =
+            `${parsedElement["startTime"]}\n ~ \n${parsedElement["endTime"]}`;
 
         parsedSchedule.push(parsedElement);
     }
@@ -407,28 +465,29 @@ const parseExamUTCDateTime = function (examDate, examTime) {
  * Starts the whole magic
  *
  * @param {boolean} forceUpdate - Whether to force an update
+ * @param {boolean} isSemesterChange - Whether there is no exams left but the semester
+ * hasn't yet changed
  */
-const onAction = function (forceUpdate = false) {
-    getAllInformation(forceUpdate === true).then((info) => {
-        infoObject = info;
-
-        if (!infoObject.countedSchedule) {
-            infoObject.countedSchedule = infoObject.isExamsTime
-                ? updateExamsSchedule()
-                : countSchedule(parseSchedule());
+const onAction = function (forceUpdate = false, isSemesterChange = false) {
+    getAllInformation(forceUpdate === true, isSemesterChange)
+        .then((info) => (infoObject = info))
+        .then(() => {
+            if (!infoObject.countedSchedule)
+                infoObject.countedSchedule = infoObject.isExamsTime
+                    ? updateExamsSchedule()
+                    : countSchedule(parseSchedule());
 
             saveKeyValue("info", infoObject);
-        }
-    });
+        });
 };
 
 metabrowser.runtime.onStartup.addListener(onAction);
-
 metabrowser.runtime.onInstalled.addListener(onAction);
-
 metabrowser.runtime.onMessage.addListener((request) => {
-    if (request.action === "checkUpdates") onAction(request.force);
+    if (request.action === "checkUpdates")
+        onAction(request.force, request.isSemesterChange);
 });
 
+// DEBUG:
 // metabrowser.storage.local.clear();
 // metabrowser.storage.local.get().then((data) => console.log(data));

@@ -18,7 +18,7 @@ tr[ng-repeat="c in data"] td:first-child {
 
 div[ng-repeat="entry in PD.schedule"]:last-child,
 div[ng-repeat="entry in PD.schedule"]:last-child table {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 /*Discipline info table*/
@@ -55,7 +55,8 @@ div.alert {
     padding: 3px !important;
 }
 
-span[style="width: 60px"] {
+span[style="width: 60px"],
+span[style="width: auto"] {
     width: fit-content !important;
 }
 

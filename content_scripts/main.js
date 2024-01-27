@@ -4,6 +4,7 @@ try {
     metabrowser = browser;
 } catch (e) {}
 const hourLength = 1000 * 60 * 60;
+let dataSource;
 let infoObject;
 
 /**
@@ -19,8 +20,7 @@ const loadValueByKey = (key) =>
  * Updates the grade fields based on the newest data
  */
 const updateGrades = function () {
-    const source = document.querySelector("#forang");
-    const jsonData = JSON.parse(source.textContent);
+    const jsonData = JSON.parse(dataSource.textContent);
     const disciplines = jsonData["dises"];
 
     for (const element of disciplines) {
@@ -45,7 +45,7 @@ const updateGrades = function () {
         );
     }
 
-    source.textContent = JSON.stringify(jsonData);
+    dataSource.textContent = JSON.stringify(jsonData);
 };
 
 /**
@@ -91,31 +91,31 @@ const getGradeNameAndType = function (gradeRatio, controlForm) {
 
 /**
  * Sets the schedule based on the closest lessons
+ *
+ * @param {HTMLElement} currentWeekElement - The current week element to get the
+ * string of the current week
  */
 const setSchedule = function (currentWeekElement) {
-    let stringCurrentWeek = currentWeekElement.innerText.split("\n")[1];
-    if (!stringCurrentWeek)
-        stringCurrentWeek = currentWeekElement.innerText
-            .split(" ")
-            .slice(3)
-            .join(" ");
+    let stringCurrentWeek = currentWeekElement.innerText
+        .split(" ")
+        .slice(3)
+        .join(" ");
 
     const now = new Date();
-    const source = document.querySelector("#forang");
-    const jsonData = JSON.parse(source.textContent);
-    const schedule = [];
+    const timeNow = now.toLocaleTimeString("ru", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Moscow",
+    });
+    const jsonData = JSON.parse(dataSource.textContent);
+    const schedule = [[], []];
     let closestDays =
         infoObject.countedSchedule[stringCurrentWeek][now.getDay()];
     let baseOffset = 0;
 
     if (closestDays[0].dateOffset === 0) {
         closestDays[0].lessons = closestDays[0].lessons.filter(
-            (lesson) =>
-                lesson.endTime >
-                now.toLocaleTimeString("ru", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                }),
+            (lesson) => lesson.endTime > timeNow,
         );
 
         if (!closestDays[0].lessons.length) {
@@ -133,51 +133,27 @@ const setSchedule = function (currentWeekElement) {
             lessonDate.getDate() + baseOffset + closestDays[i].dateOffset,
         );
 
-        schedule[i] = [];
-        schedule[i][0] = lessonDate.toLocaleDateString("ru", {
-            weekday: "long",
-            day: "2-digit",
-            month: "2-digit",
-        });
-        schedule[i][1] = [];
-
-        for (const lesson of closestDays[i].lessons) {
-            let lessonName, lessonType;
-            let lessonTypeMatch = lesson.name.match(/\[(.*)]/);
-
-            if (lessonTypeMatch) {
-                lessonName = lesson.name.match(/(.*) \[?/)[1];
-                lessonType = lessonTypeMatch[1];
-            } else {
-                lessonName = lesson.name;
-                lessonType = "";
-            }
-
-            schedule[i][1].push({
-                name: `${lessonName}
-                            ► ${lesson.teacher}\n`,
-                type: lessonType,
-                location: lesson.room,
-                time:
-                    (lesson.startTime === "12:00"
-                        ? "12:00/30"
-                        : lesson.startTime) +
-                    "\n ~ \n" +
-                    (lesson.endTime === "13:20" ? "13:20/50" : lesson.endTime),
-            });
-        }
+        schedule[i].push(
+            lessonDate.toLocaleDateString("ru", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+            }),
+        );
+        schedule[i].push(closestDays[i].lessons);
     }
 
     jsonData["schedule"] = schedule;
-    source.textContent = JSON.stringify(jsonData);
+    dataSource.textContent = JSON.stringify(jsonData);
 };
 
 /**
- * Gets the exams schedule if it is session time
+ * Gets the exams schedule if it is exams time
+ *
+ * @return {boolean} Whether there are no exams left
  */
 const setExamsSchedule = function () {
-    const source = document.querySelector("#forang");
-    const jsonData = JSON.parse(source.textContent);
+    const jsonData = JSON.parse(dataSource.textContent);
     const schedule = [];
     const timeConvertOptions = {
         weekday: "long",
@@ -190,7 +166,7 @@ const setExamsSchedule = function () {
     for (const day of infoObject.countedSchedule) {
         const dayDateTime = new Date(day[1]);
 
-        if (currentDateTime - hourLength < dayDateTime) {
+        if (currentDateTime - 2 * hourLength < dayDateTime) {
             // noinspection JSUnresolvedReference
             day.unshift(
                 dayDateTime.toLocaleDateString("ru", timeConvertOptions) +
@@ -202,7 +178,9 @@ const setExamsSchedule = function () {
     }
 
     jsonData["schedule"] = schedule;
-    source.textContent = JSON.stringify(jsonData);
+    dataSource.textContent = JSON.stringify(jsonData);
+
+    return !schedule.length;
 };
 
 /**
@@ -232,19 +210,19 @@ const getTimeLeftString = function (now, event) {
  * Waits for the element to appear to start the script
  *
  * @param {Array<string>} selectors - The CSS selector of the element
- * @return {Promise<void>} A promise to be resolved when the element is found
+ * @return {Promise<boolean>} A promise to be resolved when the element is found
  */
 const waitForElement = function (selectors) {
     return new Promise((resolve) => {
         if (selectors.every((selector) => document.querySelector(selector)))
-            return resolve();
+            return resolve(true);
 
         const observer = new MutationObserver(() => {
             if (
                 selectors.every((selector) => document.querySelector(selector))
             ) {
                 observer.disconnect();
-                resolve();
+                resolve(true);
             }
         });
 
@@ -258,57 +236,79 @@ const waitForElement = function (selectors) {
 /**
  * Checks if there is a new schedule and updates the storaged one if needed
  */
-const checkUpdates = (force = false) =>
-    metabrowser.runtime.sendMessage({ action: "checkUpdates", force: force });
+const checkUpdates = (force = false, isSemesterChange = false) =>
+    metabrowser.runtime.sendMessage({
+        action: "checkUpdates",
+        force: force,
+        isSemesterChange: isSemesterChange,
+    });
 
 /**
  * Executes the necessary actions when the page is opened.
  */
 const onPageOpen = function () {
-    loadValueByKey("info").then((info) => {
-        infoObject = info;
+    loadValueByKey("info")
+        .then((info) => (infoObject = info))
+        .then(() =>
+            waitForElement(['select[name="student_id"] option', "#forang"]),
+        )
+        .then(() => {
+            dataSource = document.querySelector("#forang");
+            updateGrades();
 
-        waitForElement(['select[name="student_id"] option', "#forang"]).then(
-            () => {
-                updateGrades();
+            if (infoObject?.isSemesterChange) {
+                const today = new Date();
+                const september1st = new Date(today.getFullYear(), 8, 1);
+                const isSeptember1stOnThisWeek =
+                    today.getUTCDay() < september1st.getUTCDay() &&
+                    today.getUTCDate() > 25;
+                const mockCurrentWeekElement = document.createElement("div");
+                mockCurrentWeekElement.innerText = isSeptember1stOnThisWeek
+                    ? ". . . 1 числитель"
+                    : ". . . 2 знаменатель";
 
-                const group = document
-                    .querySelector('select[name="student_id"] option')
-                    .innerText.split(" ")[0];
-                const currentWeekElement = document.querySelector(".small");
+                setSchedule(mockCurrentWeekElement);
+                return [false, true];
+            }
 
-                if (
-                    group !== infoObject.group &&
-                    !currentWeekElement === infoObject.isExamsTime
-                ) {
-                    if (infoObject.isExamsTime) setExamsSchedule();
-                    else setSchedule(currentWeekElement);
+            const group = document
+                .querySelector('select[name="student_id"] option')
+                .innerText.split(" ")[0];
+            const currentWeekElement = document.querySelector(".small");
+            if (
+                group === infoObject?.group &&
+                !currentWeekElement === infoObject.isExamsTime
+            ) {
+                let noExamsLeft = false;
+                if (infoObject.isExamsTime) noExamsLeft = setExamsSchedule();
+                else setSchedule(currentWeekElement);
 
-                    checkUpdates();
-                } else {
-                    checkUpdates(true);
+                return [false, noExamsLeft];
+            }
 
-                    const source = document.querySelector("#forang");
-                    const jsonData = JSON.parse(source.textContent);
-                    jsonData.schedule = [];
-                    source.textContent = JSON.stringify(jsonData);
+            return [true, false];
+        })
+        .then(([forceUpdate, isSemesterChange]) => {
+            checkUpdates(forceUpdate, isSemesterChange);
+            if (forceUpdate !== isSemesterChange) return;
 
-                    waitForElement(["div.alert i"]).then(
-                        () =>
-                            (document.querySelector(
-                                "div.alert i",
-                            ).parentNode.innerHTML =
-                                `<p style="font-size: small">Данные обновляются. Обычно это 
-                                 занимает не более двух секунд — скорее всего, информация 
-                                 уже обновилась, пока вы изучали написанное :)</p>
-                                 <br/>
-                                 <a class="btn" onclick="window.location.reload();" 
-                                 style="font-size: small">Перезагрузить</a>`),
-                    );
-                }
-            },
+            const jsonData = JSON.parse(dataSource.textContent);
+            jsonData.schedule = [];
+            dataSource.textContent = JSON.stringify(jsonData);
+
+            return waitForElement(["div.alert:has(i)"]);
+        })
+        .then(() =>
+            document.querySelector("div.alert:has(i)")?.innerHTML.replace(
+                /.*/,
+                `<p style="font-size: small">Данные обновляются. Обычно это занимает 
+                    не более трёх секунд — скорее всего, новая информация уже появилась, пока 
+                    вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
+                    <br/>
+                    <a class="btn" onclick="window.location.reload();" 
+                    style="font-size: small">Перезагрузить</a>`,
+            ),
         );
-    });
 };
 
 onPageOpen();
