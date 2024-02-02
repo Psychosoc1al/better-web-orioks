@@ -34,7 +34,7 @@ const loadValueByKey = (key) =>
  * @param {string} group - The group to get schedule if needed
  * @return {Promise<string>} A promise that resolves with the response text
  */
-const sendRequest = function (url, method, group = "") {
+const sendRequest = (url, method, group = "") => {
     return fetch(url, {
         method: method,
         headers: {
@@ -49,53 +49,40 @@ const sendRequest = function (url, method, group = "") {
  * Gets the group by sending a request and saving the basic information to process
  *
  * @param {boolean} forceUpdate - Whether to force an update
- * @param {boolean} isSemesterChange - Whether there is no exams left but the semester
- * hasn't yet changed
  * @return {Promise<Object>} The object containing all the needed information
  */
-const getAllInformation = function (
-    forceUpdate = false,
-    isSemesterChange = false,
-) {
-    return loadValueByKey("info").then((info) => {
-        if (
-            !forceUpdate &&
-            !isSemesterChange &&
-            info &&
-            Date.now() - info.updateTime < updateCheckPeriod
-        )
+const getAllInformation = (forceUpdate = false) =>
+    loadValueByKey("info").then((info) => {
+        if (!forceUpdate && Date.now() - info?.updateTime < updateCheckPeriod)
             return info;
 
         return sendRequest(
             "https://orioks.miet.ru/student/student",
             "GET",
         ).then((responseText) => {
-            const newGroup = new RegExp(
-                /selected>([А-Я]+-\d\d[А-Я]*) \(2\d{3}/,
-            ).exec(responseText)[1];
+            const newGroup = /selected>([А-Я]+-\d\d[А-Я]*)/.exec(
+                responseText,
+            )[1];
+            const newIsExamsTime = !!/<\/span> Сессия<\/a><\/li>/.exec(
+                responseText,
+            );
 
-            const newIsExamsTime = !!new RegExp(
-                /<\/span> Сессия<\/a><\/li>/,
-            ).exec(responseText);
-
-            if (isSemesterChange) {
+            if (info?.isSemesterChange && newIsExamsTime) {
                 const semesterCheckString =
                     new Date().getMonth() < 6 ? "Весенний" : "Осенний";
-                if (info) info.updateTime = Date.now();
+                info.updateTime = Date.now();
 
                 return getNewSchedule(newGroup).then((newOriginalSchedule) =>
-                    newOriginalSchedule["Semestr"].includes(
-                        semesterCheckString,
-                    ) || !info
+                    newOriginalSchedule["Semestr"].includes(semesterCheckString)
                         ? {
                               group: newGroup,
                               updateTime: Date.now(),
-                              isExamsTime: false,
+                              isExamsTime: true,
                               originalSchedule: newOriginalSchedule,
                               countedSchedule:
                                   !forceUpdate &&
                                   JSON.stringify(newOriginalSchedule) ===
-                                      JSON.stringify(info?.originalSchedule)
+                                      JSON.stringify(info.originalSchedule)
                                       ? info.countedSchedule
                                       : undefined,
                               isSemesterChange: true,
@@ -106,9 +93,7 @@ const getAllInformation = function (
 
             if (newIsExamsTime) {
                 const newOriginalSchedule = JSON.parse(
-                    new RegExp(/id=["']forang["'].*>(.*)<\/div>/).exec(
-                        responseText,
-                    )[1],
+                    /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
                 );
 
                 return {
@@ -143,7 +128,6 @@ const getAllInformation = function (
             });
         });
     });
-};
 
 /**
  * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
@@ -151,10 +135,10 @@ const getAllInformation = function (
  * @param {string} group - The group to get schedule for
  * @return {Promise<Object>} A JSON object containing the schedule
  */
-const getNewSchedule = function (group) {
+const getNewSchedule = (group) => {
     return sendRequest("https://miet.ru/schedule/data", "POST", group)
         .then((responseText) => {
-            const cookie = RegExp(/wl=(.*);path=\//).exec(responseText);
+            const cookie = /wl=(.*);path=\//.exec(responseText);
             if (!cookie) return Promise.resolve(responseText);
 
             // noinspection JSIgnoredPromiseFromCall
@@ -172,9 +156,9 @@ const getNewSchedule = function (group) {
 /**
  * Counts the full schedule cycle and saves it
  *
- * @param parsedSchedule - The parsed (processed) schedule
+ * @param {Object} parsedSchedule - The parsed (processed) schedule
  */
-const countSchedule = function (parsedSchedule) {
+const countSchedule = (parsedSchedule) => {
     const fullSchedule = {
         "1 числитель": [],
         "1 знаменатель": [],
@@ -214,13 +198,13 @@ const countSchedule = function (parsedSchedule) {
  * @param {boolean} weekChanged - Whether the week has changed while searching the closest day
  * @return {Object[]} The closest two days lessons list
  */
-const getClosestLessons = function (
+const getClosestLessons = (
     schedule,
     searchWeekNumber,
     startDay,
     daysOffset = 0,
     weekChanged = false,
-) {
+) => {
     let searchDayNumber = startDay + daysOffset - 1;
     let closestLessons = [];
     let nextOffset = daysOffset;
@@ -286,7 +270,7 @@ const getClosestLessons = function (
  * @param closestDays - The list of closest days with lessons (see {@link getClosestLessons()})
  * @return {Object[]} The list of closest days with refactored lessons
  */
-const collapseDuplicatedLessons = function (closestDays) {
+const collapseDuplicatedLessons = (closestDays) => {
     for (const day of closestDays) {
         const collapsedLessons = [];
         let currentLesson;
@@ -332,19 +316,19 @@ const collapseDuplicatedLessons = function (closestDays) {
  *
  * @return {Array<Object>} An array of parsed and formatted schedule elements
  */
-const parseSchedule = function () {
+const parseSchedule = () => {
     const parsedSchedule = [];
 
     for (const scheduleElement of infoObject.originalSchedule["Data"]) {
         const parsedElement = {};
 
         const lessonOriginalName = scheduleElement["Class"]["Name"];
-        const lessonTypeMatch = lessonOriginalName.match(/\[(.*)]/);
+        const lessonTypeMatch = /\[(.*)]/.exec(lessonOriginalName);
         let lessonType = "";
         let lessonName;
 
         if (lessonTypeMatch) {
-            lessonName = lessonOriginalName.match(/(.*) \[/)[1];
+            lessonName = /(.*) \[/.exec(lessonOriginalName)[1];
             lessonType = lessonTypeMatch[1];
         } else lessonName = lessonOriginalName;
 
@@ -381,7 +365,7 @@ const parseSchedule = function () {
 /**
  * Gets the exams schedule if it is session time
  */
-const updateExamsSchedule = function () {
+const countExamsSchedule = () => {
     const jsonData = infoObject.originalSchedule;
     const disciplines = jsonData["dises"];
     const schedule = [];
@@ -431,8 +415,7 @@ const updateExamsSchedule = function () {
     }
 
     schedule.sort((a, b) => a[1] - b[1]);
-
-    return schedule;
+    if (schedule.slice()) return schedule;
 };
 
 /**
@@ -442,7 +425,7 @@ const updateExamsSchedule = function () {
  * @param examTime - The original time
  * @return {Date} The converted date
  */
-const parseExamUTCDateTime = function (examDate, examTime) {
+const parseExamUTCDateTime = (examDate, examTime) => {
     // prettier-ignore
     const monthStringToNumber = {
         "января": 0,
@@ -465,27 +448,49 @@ const parseExamUTCDateTime = function (examDate, examTime) {
  * Starts the whole magic
  *
  * @param {boolean} forceUpdate - Whether to force an update
- * @param {boolean} isSemesterChange - Whether there is no exams left but the semester
- * hasn't yet changed
  */
-const onAction = function (forceUpdate = false, isSemesterChange = false) {
-    getAllInformation(forceUpdate === true, isSemesterChange)
+const onAction = (forceUpdate = false) => {
+    console.log(forceUpdate);
+    getAllInformation(forceUpdate)
         .then((info) => (infoObject = info))
         .then(() => {
             if (!infoObject.countedSchedule)
-                infoObject.countedSchedule = infoObject.isExamsTime
-                    ? updateExamsSchedule()
-                    : countSchedule(parseSchedule());
+                infoObject.countedSchedule =
+                    infoObject.isExamsTime && !infoObject.isSemesterChange
+                        ? countExamsSchedule()
+                        : countSchedule(parseSchedule());
+
+            const now = new Date();
+            // noinspection JSUnresolvedReference
+            if (
+                infoObject?.originalSchedule?.dises &&
+                infoObject.countedSchedule.slice(-1)[0][1] < now.valueOf()
+            ) {
+                infoObject.isSemesterChange = true;
+                saveKeyValue("info", infoObject);
+                onAction(true);
+
+                return;
+            }
 
             saveKeyValue("info", infoObject);
         });
 };
 
-metabrowser.runtime.onStartup.addListener(onAction);
-metabrowser.runtime.onInstalled.addListener(onAction);
+metabrowser.runtime.onInstalled.addListener(() =>
+    metabrowser.alarms.get("checkUpdates").then((alarm) => {
+        if (alarm) return;
+
+        // noinspection JSIgnoredPromiseFromCall
+        metabrowser.alarms.create("checkUpdates", { periodInMinutes: 361 });
+        onAction();
+    }),
+);
+metabrowser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "checkUpdates") onAction();
+});
 metabrowser.runtime.onMessage.addListener((request) => {
-    if (request.action === "checkUpdates")
-        onAction(request.force, request.isSemesterChange);
+    if (request.action === "checkUpdates") onAction(true);
 });
 
 // DEBUG:

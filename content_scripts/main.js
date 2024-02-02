@@ -19,7 +19,7 @@ const loadValueByKey = (key) =>
 /**
  * Updates the grade fields based on the newest data
  */
-const updateGrades = function () {
+const updateGrades = () => {
     const jsonData = JSON.parse(dataSource.textContent);
     const disciplines = jsonData["dises"];
 
@@ -54,18 +54,10 @@ const updateGrades = function () {
  * @param {number} number - The number to be adjusted
  * @return {string} The adjusted number as a string
  */
-const numberToFixedString = function (number) {
+const numberToFixedString = (number) => {
     if (!number) return "0";
 
-    let stringedNumber = number.toFixed(2);
-
-    while (stringedNumber.endsWith("0"))
-        stringedNumber = stringedNumber.slice(0, -1);
-
-    if (stringedNumber.endsWith("."))
-        stringedNumber = stringedNumber.slice(0, -1);
-
-    return stringedNumber;
+    return number.toFixed(2).replace(/\.?0+$/, "");
 };
 
 /**
@@ -76,7 +68,7 @@ const numberToFixedString = function (number) {
  *
  * @return {[string, number]} The new grade class as a string
  */
-const getGradeNameAndType = function (gradeRatio, controlForm) {
+const getGradeNameAndType = (gradeRatio, controlForm) => {
     const isCredit = controlForm === "Зачёт";
 
     if (gradeRatio < 0.5) {
@@ -92,14 +84,14 @@ const getGradeNameAndType = function (gradeRatio, controlForm) {
 /**
  * Sets the schedule based on the closest lessons
  *
- * @param {HTMLElement} currentWeekElement - The current week element to get the
+ * @param {HTMLElement || Object} currentWeekElement - The current week element to get the
  * string of the current week
+ * @param {boolean} isSeptember1stOnThisWeek - Whether the current week contains September 1st
  */
-const setSchedule = function (currentWeekElement) {
-    let stringCurrentWeek = currentWeekElement.innerText
-        .split(" ")
-        .slice(3)
-        .join(" ");
+const setSchedule = (currentWeekElement, isSeptember1stOnThisWeek = false) => {
+    let [stringCurrentWeek] = /[12] (?:числитель|знаменатель)/.exec(
+        currentWeekElement.innerText,
+    );
 
     const now = new Date();
     const timeNow = now.toLocaleTimeString("ru", {
@@ -109,9 +101,24 @@ const setSchedule = function (currentWeekElement) {
     });
     const jsonData = JSON.parse(dataSource.textContent);
     const schedule = [[], []];
-    let closestDays =
-        infoObject.countedSchedule[stringCurrentWeek][now.getDay()];
+    let closestDays;
     let baseOffset = 0;
+
+    if (isSeptember1stOnThisWeek) {
+        const september1stDay = new Date(now.getFullYear(), 8, 1).getDay();
+        closestDays =
+            infoObject.countedSchedule[stringCurrentWeek][september1stDay];
+
+        baseOffset += september1stDay - now.getDay();
+    } else {
+        closestDays =
+            infoObject.countedSchedule[stringCurrentWeek][
+                infoObject.isSemesterChange ? 0 : now.getDay()
+            ];
+
+        baseOffset +=
+            infoObject.isSemesterChange && now.getDay() ? 7 - now.getDay() : 0;
+    }
 
     if (closestDays[0].dateOffset === 0) {
         closestDays[0].lessons = closestDays[0].lessons.filter(
@@ -149,10 +156,8 @@ const setSchedule = function (currentWeekElement) {
 
 /**
  * Gets the exams schedule if it is exams time
- *
- * @return {boolean} Whether there are no exams left
  */
-const setExamsSchedule = function () {
+const setExamsSchedule = () => {
     const jsonData = JSON.parse(dataSource.textContent);
     const schedule = [];
     const timeConvertOptions = {
@@ -179,8 +184,6 @@ const setExamsSchedule = function () {
 
     jsonData["schedule"] = schedule;
     dataSource.textContent = JSON.stringify(jsonData);
-
-    return !schedule.length;
 };
 
 /**
@@ -191,7 +194,7 @@ const setExamsSchedule = function () {
  * @param {Date|number} event - The event {@link Date} object or timestamp
  * @return {string} The time left string or an empty string
  */
-const getTimeLeftString = function (now, event) {
+const getTimeLeftString = (now, event) => {
     let timeLeft = event - now;
 
     if (timeLeft > hourLength) {
@@ -212,8 +215,8 @@ const getTimeLeftString = function (now, event) {
  * @param {Array<string>} selectors - The CSS selector of the element
  * @return {Promise<boolean>} A promise to be resolved when the element is found
  */
-const waitForElement = function (selectors) {
-    return new Promise((resolve) => {
+const waitForElement = (selectors) =>
+    new Promise((resolve) => {
         if (selectors.every((selector) => document.querySelector(selector)))
             return resolve(true);
 
@@ -231,22 +234,19 @@ const waitForElement = function (selectors) {
             subtree: true,
         });
     });
-};
 
 /**
  * Checks if there is a new schedule and updates the storaged one if needed
  */
-const checkUpdates = (force = false, isSemesterChange = false) =>
+const checkUpdates = () =>
     metabrowser.runtime.sendMessage({
         action: "checkUpdates",
-        force: force,
-        isSemesterChange: isSemesterChange,
     });
 
 /**
  * Executes the necessary actions when the page is opened.
  */
-const onPageOpen = function () {
+const onPageOpen = () => {
     loadValueByKey("info")
         .then((info) => (infoObject = info))
         .then(() =>
@@ -256,42 +256,46 @@ const onPageOpen = function () {
             dataSource = document.querySelector("#forang");
             updateGrades();
 
-            if (infoObject?.isSemesterChange) {
+            const currentWeekElement = document.querySelector(".small");
+            if (infoObject?.isSemesterChange && !currentWeekElement) {
                 const today = new Date();
                 const september1st = new Date(today.getFullYear(), 8, 1);
                 const isSeptember1stOnThisWeek =
-                    today.getUTCDay() < september1st.getUTCDay() &&
-                    today.getUTCDate() > 25;
-                const mockCurrentWeekElement = document.createElement("div");
-                mockCurrentWeekElement.innerText = isSeptember1stOnThisWeek
-                    ? ". . . 1 числитель"
-                    : ". . . 2 знаменатель";
+                    today.getMonth() === 7 &&
+                    today.getDay() < september1st.getDay() &&
+                    today.getDate() > 25;
 
-                setSchedule(mockCurrentWeekElement);
-                return [false, true];
+                setSchedule(
+                    {
+                        innerText: isSeptember1stOnThisWeek
+                            ? "1 числитель"
+                            : "2 знаменатель",
+                    },
+                    isSeptember1stOnThisWeek,
+                );
+
+                return false;
             }
 
             const group = document
                 .querySelector('select[name="student_id"] option')
                 .innerText.split(" ")[0];
-            const currentWeekElement = document.querySelector(".small");
             if (
                 group === infoObject?.group &&
                 !currentWeekElement === infoObject.isExamsTime
             ) {
-                let noExamsLeft = false;
-                if (infoObject.isExamsTime) noExamsLeft = setExamsSchedule();
+                if (infoObject.isExamsTime) setExamsSchedule();
                 else setSchedule(currentWeekElement);
 
-                return [false, noExamsLeft];
+                return false;
             }
 
-            return [true, false];
+            return true;
         })
-        .then(([forceUpdate, isSemesterChange]) => {
-            checkUpdates(forceUpdate, isSemesterChange);
-            if (forceUpdate !== isSemesterChange) return;
+        .then((forceUpdate) => {
+            if (!forceUpdate) return;
 
+            checkUpdates();
             const jsonData = JSON.parse(dataSource.textContent);
             jsonData.schedule = [];
             dataSource.textContent = JSON.stringify(jsonData);
@@ -302,11 +306,11 @@ const onPageOpen = function () {
             document.querySelector("div.alert:has(i)")?.innerHTML.replace(
                 /.*/,
                 `<p style="font-size: small">Данные обновляются. Обычно это занимает 
-                    не более трёх секунд — скорее всего, новая информация уже появилась, пока 
-                    вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
-                    <br/>
-                    <a class="btn" onclick="window.location.reload();" 
-                    style="font-size: small">Перезагрузить</a>`,
+                не более трёх секунд — скорее всего, новая информация уже появилась, пока 
+                вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
+                <br/>
+                <a class="btn" onclick="window.location.reload();" 
+                style="font-size: small">Перезагрузить</a>`,
             ),
         );
 };
