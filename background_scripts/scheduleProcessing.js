@@ -3,8 +3,7 @@ try {
     // noinspection JSUnresolvedReference
     metabrowser = browser;
 } catch (e) {}
-const hourLength = 1000 * 60 * 60;
-const updateCheckPeriod = hourLength * 6;
+const hourLengthInMS = 1000 * 60 * 60;
 
 let infoObject;
 
@@ -48,14 +47,10 @@ const sendRequest = (url, method, group = "") => {
 /**
  * Gets the group by sending a request and saving the basic information to process
  *
- * @param {boolean} forceUpdate - Whether to force an update
  * @return {Promise<Object>} The object containing all the needed information
  */
-const getAllInformation = (forceUpdate = false) =>
+const getAllInformation = () =>
     loadValueByKey("info").then((info) => {
-        if (!forceUpdate && Date.now() - info?.updateTime < updateCheckPeriod)
-            return info;
-
         return sendRequest(
             "https://orioks.miet.ru/student/student",
             "GET",
@@ -70,19 +65,16 @@ const getAllInformation = (forceUpdate = false) =>
             if (info?.isSemesterChange && newIsExamsTime) {
                 const semesterCheckString =
                     new Date().getMonth() < 6 ? "Весенний" : "Осенний";
-                info.updateTime = Date.now();
 
                 return getNewSchedule(newGroup).then((newOriginalSchedule) =>
                     newOriginalSchedule["Semestr"].includes(semesterCheckString)
                         ? {
                               group: newGroup,
-                              updateTime: Date.now(),
                               isExamsTime: true,
                               originalSchedule: newOriginalSchedule,
                               countedSchedule:
-                                  !forceUpdate &&
                                   JSON.stringify(newOriginalSchedule) ===
-                                      JSON.stringify(info.originalSchedule)
+                                  JSON.stringify(info.originalSchedule)
                                       ? info.countedSchedule
                                       : undefined,
                               isSemesterChange: true,
@@ -98,13 +90,11 @@ const getAllInformation = (forceUpdate = false) =>
 
                 return {
                     group: newGroup,
-                    updateTime: Date.now(),
                     isExamsTime: newIsExamsTime,
                     originalSchedule: newOriginalSchedule,
                     countedSchedule:
-                        !forceUpdate &&
                         JSON.stringify(newOriginalSchedule) ===
-                            JSON.stringify(info?.originalSchedule)
+                        JSON.stringify(info?.originalSchedule)
                             ? info.countedSchedule
                             : undefined,
                     isSemesterChange: false,
@@ -114,13 +104,11 @@ const getAllInformation = (forceUpdate = false) =>
             return getNewSchedule(newGroup).then((newOriginalSchedule) => {
                 return {
                     group: newGroup,
-                    updateTime: Date.now(),
                     isExamsTime: newIsExamsTime,
                     originalSchedule: newOriginalSchedule,
                     countedSchedule:
-                        !forceUpdate &&
                         JSON.stringify(newOriginalSchedule) ===
-                            JSON.stringify(info?.originalSchedule)
+                        JSON.stringify(info?.originalSchedule)
                             ? info.countedSchedule
                             : undefined,
                     isSemesterChange: false,
@@ -437,21 +425,18 @@ const parseExamUTCDateTime = (examDate, examTime) => {
     const [day, monthString, year] = examDate.split(" ");
     const [hour, minute] = examTime.split(":");
 
-    // To use time in GMT+3
+    // To use time in GMT+3 as UTC
     return new Date(
         Date.UTC(year, monthStringToNumber[monthString], day, hour, minute) -
-            3 * hourLength,
+            3 * hourLengthInMS,
     );
 };
 
 /**
  * Starts the whole magic
- *
- * @param {boolean} forceUpdate - Whether to force an update
  */
-const onAction = (forceUpdate = false) => {
-    console.log(forceUpdate);
-    getAllInformation(forceUpdate)
+const runUpdate = () => {
+    getAllInformation()
         .then((info) => (infoObject = info))
         .then(() => {
             if (!infoObject.countedSchedule)
@@ -460,15 +445,14 @@ const onAction = (forceUpdate = false) => {
                         ? countExamsSchedule()
                         : countSchedule(parseSchedule());
 
-            const now = new Date();
             // noinspection JSUnresolvedReference
             if (
                 infoObject?.originalSchedule?.dises &&
-                infoObject.countedSchedule.slice(-1)[0][1] < now.valueOf()
+                infoObject.countedSchedule.slice(-1)[0][1] < Date.now()
             ) {
                 infoObject.isSemesterChange = true;
                 saveKeyValue("info", infoObject);
-                onAction(true);
+                runUpdate();
 
                 return;
             }
@@ -482,15 +466,15 @@ metabrowser.runtime.onInstalled.addListener(() =>
         if (alarm) return;
 
         // noinspection JSIgnoredPromiseFromCall
-        metabrowser.alarms.create("checkUpdates", { periodInMinutes: 361 });
-        onAction();
+        metabrowser.alarms.create("checkUpdates", { periodInMinutes: 360 });
+        runUpdate();
     }),
 );
 metabrowser.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "checkUpdates") onAction();
+    if (alarm.name === "checkUpdates") runUpdate();
 });
 metabrowser.runtime.onMessage.addListener((request) => {
-    if (request.action === "checkUpdates") onAction(true);
+    if (request.action === "checkUpdates") runUpdate();
 });
 
 // DEBUG:
