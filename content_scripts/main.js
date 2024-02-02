@@ -312,7 +312,11 @@ const onPageOpen = () => {
                 <a class="btn" onclick="window.location.reload();" 
                 style="font-size: small">Перезагрузить</a>`,
             ),
-        );
+        )
+        .catch((e) => {
+            console.error(e);
+            checkUpdates();
+        });
 };
 
 onPageOpen();

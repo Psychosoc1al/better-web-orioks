@@ -38,6 +38,7 @@ const sendRequest = (url, method, group = "") => {
         method: method,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
+            "Set-Cookie": "SameSite=None; Secure",
         },
         body: group ? `group=${group}` : undefined,
         credentials: "include",
@@ -129,14 +130,15 @@ const getNewSchedule = (group) => {
             const cookie = /wl=(.*);path=\//.exec(responseText);
             if (!cookie) return Promise.resolve(responseText);
 
-            // noinspection JSIgnoredPromiseFromCall
-            metabrowser.cookies.set({
-                url: "https://miet.ru/",
-                name: "wl",
-                value: cookie[1],
-            });
-
-            return sendRequest("https://miet.ru/schedule/data", "POST", group);
+            return metabrowser.cookies
+                .set({
+                    url: "https://miet.ru/",
+                    name: "wl",
+                    value: cookie[1],
+                })
+                .then(() =>
+                    sendRequest("https://miet.ru/schedule/data", "POST", group),
+                );
         })
         .then((responseText) => JSON.parse(responseText));
 };
