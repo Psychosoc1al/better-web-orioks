@@ -244,6 +244,26 @@ const checkUpdates = () =>
     });
 
 /**
+ * Shows the updating message
+ */
+const showUpdatingMessage = () => {
+    const jsonData = JSON.parse(dataSource.textContent);
+    jsonData.schedule = [];
+    dataSource.textContent = JSON.stringify(jsonData);
+
+    waitForElement(["div.alert:has(i)"]).then(
+        () =>
+            (document.querySelector("div.alert:has(i)").innerHTML =
+                `<p style="font-size: small">Данные обновляются. Обычно это занимает 
+                не более трёх секунд — скорее всего, новая информация уже появилась, пока 
+                вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
+                <br/>
+                <a class="btn" onclick="window.location.reload();" 
+                style="font-size: small">Перезагрузить</a>`),
+    );
+};
+
+/**
  * Executes the necessary actions when the page is opened.
  */
 const onPageOpen = () => {
@@ -296,26 +316,13 @@ const onPageOpen = () => {
             if (!forceUpdate) return;
 
             checkUpdates();
-            const jsonData = JSON.parse(dataSource.textContent);
-            jsonData.schedule = [];
-            dataSource.textContent = JSON.stringify(jsonData);
-
-            return waitForElement(["div.alert:has(i)"]);
+            showUpdatingMessage();
         })
-        .then(() =>
-            document.querySelector("div.alert:has(i)")?.innerHTML.replace(
-                /.*/,
-                `<p style="font-size: small">Данные обновляются. Обычно это занимает 
-                не более трёх секунд — скорее всего, новая информация уже появилась, пока 
-                вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
-                <br/>
-                <a class="btn" onclick="window.location.reload();" 
-                style="font-size: small">Перезагрузить</a>`,
-            ),
-        )
         .catch((e) => {
             console.error(e);
+
             checkUpdates();
+            showUpdatingMessage();
         });
 };
 
