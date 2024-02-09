@@ -204,7 +204,7 @@ const getClosestLessons = (
         searchDayNumber = 0;
         nextOffset++;
         weekChanged = true;
-    } else if (weekChanged) searchWeekNumber = ++searchWeekNumber % 4;
+    }
 
     while (!closestLessons.length) {
         searchDayNumber = ++searchDayNumber % 7;
