@@ -460,17 +460,25 @@ const runUpdate = () => {
             }
 
             saveKeyValue("info", infoObject);
+        })
+        .catch((e) => {
+            console.error(e);
+
+            saveKeyValue("info", undefined);
         });
 };
 
 metabrowser.runtime.onInstalled.addListener(() =>
-    metabrowser.alarms.get("checkUpdates").then((alarm) => {
-        if (alarm) return;
+    metabrowser.alarms
+        .get("checkUpdates")
+        .then((alarm) => {
+            if (alarm) return;
 
-        // noinspection JSIgnoredPromiseFromCall
-        metabrowser.alarms.create("checkUpdates", { periodInMinutes: 360 });
-        runUpdate();
-    }),
+            // noinspection JSIgnoredPromiseFromCall
+            metabrowser.alarms.create("checkUpdates", { periodInMinutes: 360 });
+        })
+        .then(() => saveKeyValue("info", undefined))
+        .then(() => runUpdate()),
 );
 metabrowser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "checkUpdates") runUpdate();
