@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Better web-ORIOKS",
-    "version": "0.8.6",
+    "version": "0.8.7",
     "description": "Улучшение веб-версии ОРИОКС: доработка подсчёта баллов, расписания и дизайна",
     "browser_specific_settings": {
         "gecko": {
@@ -21,7 +21,8 @@
         "128": "icons/icon-128.png"
     },
     "background": {
-        "scripts": ["background_scripts/scheduleProcessing.js"]
+        "scripts": ["background_scripts/scheduleProcessing.js"],
+        "persistent": true
     },
     "content_scripts": [
         {
