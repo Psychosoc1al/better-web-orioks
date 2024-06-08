@@ -270,7 +270,7 @@ const onPageOpen = () => {
     loadValueByKey("info")
         .then((info) => (infoObject = info))
         .then(() =>
-            waitForElement(['select[name="student_id"] option', "#forang"]),
+            waitForElement(["select[name='student_id'] option", "#forang"]),
         )
         .then(() => {
             dataSource = document.querySelector("#forang");
@@ -298,11 +298,12 @@ const onPageOpen = () => {
             }
 
             const group = document
-                .querySelector('select[name="student_id"] option')
+                .querySelector("select[name='student_id'] option")
                 .innerText.split(" ")[0];
             if (
-                group === infoObject?.group &&
-                !currentWeekElement === infoObject.isExamsTime
+                (group === infoObject?.group &&
+                    !currentWeekElement === infoObject.isExamsTime) ||
+                infoObject.forcedExamsTime
             ) {
                 if (infoObject.isExamsTime) setExamsSchedule();
                 else setSchedule(currentWeekElement);
