@@ -59,9 +59,12 @@ const getAllInformation = () =>
             const newGroup = /selected>([А-Я]+-\d\d[А-Я]*)/.exec(
                 responseText,
             )[1];
-            const newIsExamsTime = !!/<\/span> Сессия<\/a><\/li>/.exec(
-                responseText,
+            const newSchedule = JSON.parse(
+                /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
             );
+            const newIsExamsTime =
+                !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
+                newSchedule["dises"].some((element) => element["date_exam"]);
 
             if (info?.isSemesterChange && newIsExamsTime) {
                 const semesterCheckString =
@@ -79,45 +82,40 @@ const getAllInformation = () =>
                                       ? info.countedSchedule
                                       : undefined,
                               isSemesterChange: true,
+                              forcedExamsTime: false,
                           }
                         : info,
                 );
-            }
-
-            if (newIsExamsTime) {
-                const newOriginalSchedule = JSON.parse(
-                    /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
-                );
-
+            } else if (newIsExamsTime)
                 return {
                     group: newGroup,
                     isExamsTime: newIsExamsTime,
-                    originalSchedule: newOriginalSchedule,
+                    originalSchedule: newSchedule,
                     countedSchedule:
-                        JSON.stringify(newOriginalSchedule) ===
+                        JSON.stringify(newSchedule) ===
                         JSON.stringify(info?.originalSchedule)
                             ? info.countedSchedule
                             : undefined,
                     isSemesterChange: false,
+                    forcedExamsTime: true,
                 };
-            }
-
-            return getNewSchedule(newGroup).then((newOriginalSchedule) => {
-                return {
-                    group: newGroup,
-                    isExamsTime: newIsExamsTime,
-                    originalSchedule: newOriginalSchedule,
-                    countedSchedule:
-                        JSON.stringify(newOriginalSchedule) ===
-                        JSON.stringify(info?.originalSchedule)
-                            ? info.countedSchedule
-                            : undefined,
-                    isSemesterChange: false,
-                };
-            });
+            else
+                return getNewSchedule(newGroup).then((newOriginalSchedule) => {
+                    return {
+                        group: newGroup,
+                        isExamsTime: newIsExamsTime,
+                        originalSchedule: newOriginalSchedule,
+                        countedSchedule:
+                            JSON.stringify(newOriginalSchedule) ===
+                            JSON.stringify(info?.originalSchedule)
+                                ? info.countedSchedule
+                                : undefined,
+                        isSemesterChange: false,
+                        forcedExamsTime: false,
+                    };
+                });
         });
     });
-
 /**
  * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
  *
