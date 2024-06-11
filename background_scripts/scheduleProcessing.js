@@ -359,8 +359,7 @@ const countExamsSchedule = () => {
     const schedule = [];
 
     for (const element of disciplines) {
-        const controlForm = element["formControl"]["name"];
-        if (controlForm !== "Экзамен") continue;
+        if (!element["time_exam"]) continue;
 
         let teachersString = "";
         element["preps"].forEach(
