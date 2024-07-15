@@ -116,6 +116,7 @@ const getAllInformation = () =>
                 });
         });
     });
+
 /**
  * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
  *
@@ -449,9 +450,13 @@ const runUpdate = () => {
                 infoObject?.originalSchedule?.dises &&
                 infoObject.countedSchedule.slice(-1)[0][1] < Date.now()
             ) {
-                infoObject.isSemesterChange = true;
-                saveKeyValue("info", infoObject);
-                runUpdate();
+                loadValueByKey("info").then((res) => {
+                    infoObject.isSemesterChange = true;
+                    saveKeyValue("info", infoObject);
+
+                    if (JSON.stringify(res) !== JSON.stringify(infoObject))
+                        runUpdate();
+                });
 
                 return;
             }
