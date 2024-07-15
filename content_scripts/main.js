@@ -93,6 +93,9 @@ const setSchedule = (currentWeekElement, isSeptember1stOnThisWeek = false) => {
         currentWeekElement.innerText,
     );
 
+    // noinspection JSUnresolvedReference
+    if (!infoObject.countedSchedule?.stringCurrentWeek) return;
+
     const now = new Date();
     const timeNow = now.toLocaleTimeString("ru", {
         hour: "2-digit",
@@ -210,12 +213,12 @@ const getTimeLeftString = (now, event) => {
 };
 
 /**
- * Waits for the element to appear to start the script
+ * Waits for elements to appear to start the script
  *
  * @param {Array<string>} selectors - The CSS selector of the element
  * @return {Promise<boolean>} A promise to be resolved when the element is found
  */
-const waitForElement = (selectors) =>
+const waitForElements = (selectors) =>
     new Promise((resolve) => {
         if (selectors.every((selector) => document.querySelector(selector)))
             return resolve(true);
@@ -251,7 +254,7 @@ const showUpdatingMessage = () => {
     jsonData.schedule = [];
     dataSource.textContent = JSON.stringify(jsonData);
 
-    waitForElement(["div.alert:has(i)"]).then(
+    waitForElements(["div.alert:has(i)"]).then(
         () =>
             (document.querySelector("div.alert:has(i)").innerHTML =
                 `<p style="font-size: small">Данные обновляются. Обычно это занимает 
@@ -259,7 +262,12 @@ const showUpdatingMessage = () => {
                 вы изучали написанное :). В идеале осталось только перезагрузить страницу:</p>
                 <br/>
                 <a class="btn" onclick="window.location.reload();" 
-                style="font-size: small">Перезагрузить</a>`),
+                style="font-size: small">Перезагрузить</a>
+                <br/><br/>
+                <p>Если же даже после нескольких перезагрузок не становится лучше, 
+                то это явно что-то нездоровое, и буду благодарен, если 
+                <a href="https://github.com/Psychosoc1al/better-web-orioks/issues">
+                сообщите об ошибке</a></p>`),
     );
 };
 
@@ -270,7 +278,7 @@ const onPageOpen = () => {
     loadValueByKey("info")
         .then((info) => (infoObject = info))
         .then(() =>
-            waitForElement(["select[name='student_id'] option", "#forang"]),
+            waitForElements(["select[name='student_id'] option", "#forang"]),
         )
         .then(() => {
             dataSource = document.querySelector("#forang");
@@ -303,7 +311,7 @@ const onPageOpen = () => {
             if (
                 (group === infoObject?.group &&
                     !currentWeekElement === infoObject.isExamsTime) ||
-                infoObject.forcedExamsTime
+                infoObject?.forcedExamsTime
             ) {
                 if (infoObject.isExamsTime) setExamsSchedule();
                 else setSchedule(currentWeekElement);
