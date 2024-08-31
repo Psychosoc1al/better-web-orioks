@@ -93,8 +93,7 @@ const setSchedule = (currentWeekElement, isSeptember1stOnThisWeek = false) => {
         currentWeekElement.innerText,
     );
 
-    // noinspection JSUnresolvedReference
-    if (!infoObject.countedSchedule?.stringCurrentWeek) return;
+    if (!infoObject.countedSchedule[stringCurrentWeek]) return;
 
     const now = new Date();
     const timeNow = now.toLocaleTimeString("ru", {
