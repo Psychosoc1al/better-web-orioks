@@ -345,6 +345,15 @@ const parseSchedule = () => {
         parsedElement["time"] =
             `${parsedElement["startTime"]}\n ~ \n${parsedElement["endTime"]}`;
 
+        if (
+            parsedElement["location"].includes(
+                "Аудитория практической подготовки",
+            )
+        ) {
+            parsedElement["location"] = "Предприятие / кафедра";
+            parsedElement["type"] = "Пр";
+        }
+
         parsedSchedule.push(parsedElement);
     }
 
