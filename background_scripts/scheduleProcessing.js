@@ -331,7 +331,10 @@ const parseSchedule = () => {
         parsedElement["type"] = lessonType;
         parsedElement["dayNumber"] = scheduleElement["Day"];
         parsedElement["weekNumber"] = scheduleElement["DayNumber"];
-        parsedElement["location"] = scheduleElement["Room"]["Name"];
+        parsedElement["location"] =
+            scheduleElement["Class"]["Form"] === "Дистанционное"
+                ? "Дист."
+                : scheduleElement["Room"]["Name"];
         parsedElement["lessonNumber"] = scheduleElement["Time"]["Time"];
         parsedElement["startTime"] = scheduleElement["Time"]["TimeFrom"]
             .split("T")[1]
