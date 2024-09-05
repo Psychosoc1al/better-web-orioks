@@ -267,7 +267,10 @@ const collapseDuplicatedLessons = (closestDays) => {
         let lessonCount = 1;
 
         for (let i = 0; i < day.lessons.length; i++) {
-            if (day.lessons[i].name === day.lessons[i + 1]?.name) {
+            if (
+                day.lessons[i].name === day.lessons[i + 1]?.name &&
+                day.lessons[i].type === day.lessons[i + 1]?.type
+            ) {
                 lessonCount++;
                 continue;
             }
