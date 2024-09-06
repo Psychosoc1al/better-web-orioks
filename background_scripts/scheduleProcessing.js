@@ -65,6 +65,9 @@ const getAllInformation = () =>
             const newIsExamsTime =
                 !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
                 newSchedule["dises"].some((element) => element["date_exam"]);
+            const subjects = newSchedule["dises"].map(
+                (element) => element["name"],
+            );
 
             if (info?.isSemesterChange && newIsExamsTime) {
                 const semesterCheckString =
@@ -83,6 +86,7 @@ const getAllInformation = () =>
                                       : undefined,
                               isSemesterChange: true,
                               forcedExamsTime: false,
+                              subjects: subjects,
                           }
                         : info,
                 );
@@ -98,6 +102,7 @@ const getAllInformation = () =>
                             : undefined,
                     isSemesterChange: false,
                     forcedExamsTime: true,
+                    subjects: subjects,
                 };
             else
                 return getNewSchedule(newGroup).then((newOriginalSchedule) => {
@@ -112,6 +117,7 @@ const getAllInformation = () =>
                                 : undefined,
                         isSemesterChange: false,
                         forcedExamsTime: false,
+                        subjects: subjects,
                     };
                 });
         });
@@ -324,10 +330,14 @@ const parseSchedule = () => {
             lessonType = lessonTypeMatch[1];
         } else lessonName = lessonOriginalName;
 
-        lessonName = `${lessonName}
-                      ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
+        if (lessonName.startsWith("Дв ")) {
+            lessonName = lessonName.replace("Дв ", "");
 
-        parsedElement["name"] = lessonName;
+            if (!infoObject.subjects.includes(lessonName)) continue;
+        }
+
+        parsedElement["name"] = `${lessonName}
+                                 ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
         parsedElement["type"] = lessonType;
         parsedElement["dayNumber"] = scheduleElement["Day"];
         parsedElement["weekNumber"] = scheduleElement["DayNumber"];
