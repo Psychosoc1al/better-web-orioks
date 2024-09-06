@@ -263,7 +263,8 @@ const showUpdatingMessage = () => {
                 <a class="btn" onclick="window.location.reload();" 
                 style="font-size: small">Перезагрузить</a>
                 <br/><br/>
-                <p>Если же даже после нескольких перезагрузок не становится лучше, 
+                <p>Если же даже после нескольких перезагрузок не становится лучше,
+                а на <a href="https://miet.ru/schedule">сайте</a> расписание есть, 
                 то это явно что-то нездоровое, и буду благодарен, если 
                 <a href="https://github.com/Psychosoc1al/better-web-orioks/issues">
                 сообщите об ошибке</a></p>`),
