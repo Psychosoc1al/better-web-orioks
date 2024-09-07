@@ -338,7 +338,13 @@ const parseSchedule = () => {
 
         parsedElement["name"] = `${lessonName}
                                  ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
-        parsedElement["type"] = lessonType;
+        //
+        parsedElement["type"] =
+            lessonType === "Лек"
+                ? "Лекция"
+                : lessonType === "Пр"
+                  ? "Практика"
+                  : "Лабораторная";
         parsedElement["dayNumber"] = scheduleElement["Day"];
         parsedElement["weekNumber"] = scheduleElement["DayNumber"];
         parsedElement["location"] =
@@ -367,7 +373,7 @@ const parseSchedule = () => {
             )
         ) {
             parsedElement["location"] = "Предприятие / кафедра";
-            parsedElement["type"] = "Пр";
+            parsedElement["type"] = "Практика";
         }
 
         parsedSchedule.push(parsedElement);
