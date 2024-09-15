@@ -30,10 +30,22 @@ const observeModalParent = function (modalDialog) {
 };
 
 /**
+ * Fixes the overflow of the practice table.
+ *
+ * @param {HTMLElement} table - the practice table element
+ */
+const fixPracticeOverflow = function (table) {
+    let wrapperDiv = document.createElement("div");
+    wrapperDiv.style.overflowX = "auto";
+    table.parentNode.insertBefore(wrapperDiv, table);
+    wrapperDiv.appendChild(table);
+};
+
+/**
  * Starts observing the first appearance of the modal dialog.
  */
-const startFirstAppearObserver = function () {
-    const firstAppearObserver = new MutationObserver((mutations) =>
+const startFirstAppearObservers = function () {
+    const modalAppearObserver = new MutationObserver((mutations) =>
         mutations.forEach((mutation) =>
             mutation.addedNodes.forEach((node) => {
                 if (
@@ -45,13 +57,32 @@ const startFirstAppearObserver = function () {
                         centerModalVertically(node),
                     );
 
-                    firstAppearObserver.disconnect();
+                    modalAppearObserver.disconnect();
+                    practiceTableObserver.disconnect();
                 }
             }),
         ),
     );
 
-    firstAppearObserver.observe(document, { childList: true, subtree: true });
+    modalAppearObserver.observe(document, { childList: true, subtree: true });
+
+    const practiceTableObserver = new MutationObserver((mutations) =>
+        mutations.forEach((mutation) =>
+            mutation.addedNodes.forEach((node) => {
+                if (
+                    node.nodeType === Node.ELEMENT_NODE &&
+                    node.matches("table.table.table-bordered")
+                ) {
+                    fixPracticeOverflow(node);
+
+                    modalAppearObserver.disconnect();
+                    practiceTableObserver.disconnect();
+                }
+            }),
+        ),
+    );
+
+    practiceTableObserver.observe(document, { childList: true, subtree: true });
 };
 
-startFirstAppearObserver();
+startFirstAppearObservers();
