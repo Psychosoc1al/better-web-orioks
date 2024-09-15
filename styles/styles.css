@@ -251,3 +251,7 @@ div.modal th {
 div.badge {
     white-space: wrap;
 }
+
+body {
+    overflow-wrap: break-word;
+}
