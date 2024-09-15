@@ -255,3 +255,7 @@ div.badge {
 body {
     overflow-wrap: break-word;
 }
+
+div.panel.panel-default.ng-scope {
+    display: none;
+}
