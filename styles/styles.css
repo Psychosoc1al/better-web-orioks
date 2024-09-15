@@ -239,3 +239,15 @@ div.dropdown-divider {
 table.minicalendar td.day {
     border-radius: 3px;
 }
+
+div.modal {
+    backdrop-filter: blur(5px);
+}
+
+div.modal th {
+    text-align: center;
+}
+
+div.badge {
+    white-space: wrap;
+}
