@@ -68,7 +68,9 @@ textarea,
 a.list-group-item,
 button,
 div.list-group-item.bg-grey,
-ul.breadcrumb {
+ul.breadcrumb,
+div.card-img-top,
+div.bg-pulse-grey {
     border-radius: 5px !important;
 }
 
@@ -131,7 +133,8 @@ div.dropdown-menu-left {
 }
 
 /*News page tabs*/
-ul[role="tablist"] a {
+ul[role="tablist"] a,
+div.card-img {
     border-radius: 5px 5px 0 0 !important;
 }
 
