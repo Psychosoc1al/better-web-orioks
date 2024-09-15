@@ -238,7 +238,7 @@ const waitForElements = (selectors) =>
     });
 
 /**
- * Checks if there is a new schedule and updates the storaged one if needed
+ * Checks if there is a new schedule and updates the saved one if needed
  */
 const checkUpdates = () =>
     metabrowser.runtime.sendMessage({

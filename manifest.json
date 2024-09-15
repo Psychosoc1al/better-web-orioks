@@ -14,7 +14,7 @@
     "content_scripts": [
         {
             "matches": ["https://orioks.miet.ru/*"],
-            "js": ["content_scripts/main.js"],
+            "js": ["content_scripts/main.js", "styles/styles.js"],
             "css": ["styles/styles.css"],
             "run_at": "document_start"
         }
