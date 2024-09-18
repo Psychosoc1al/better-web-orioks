@@ -19,12 +19,11 @@ const observeModalParent = function (modalDialog) {
     const parentElement = modalDialog.parentElement;
 
     const observer = new MutationObserver(() => {
-        if (parentElement.display !== "none")
+        if (parentElement.style.display !== "none") 
             centerModalVertically(modalDialog);
     });
 
     observer.observe(parentElement, {
-        attributes: true,
         attributeFilter: ["style"],
     });
 };
