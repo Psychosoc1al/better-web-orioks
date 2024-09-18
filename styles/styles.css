@@ -259,3 +259,7 @@ body {
 div.panel.panel-default.ng-scope {
     display: none;
 }
+
+div#postViewModal div.row {
+    display: none;
+}
