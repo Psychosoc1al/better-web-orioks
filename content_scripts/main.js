@@ -330,7 +330,10 @@ const onPageOpen = () => {
 
             checkUpdates();
             showUpdatingMessage();
-        });
+        })
+        .finally(() =>
+            metabrowser.runtime.sendMessage({ action: "setUpdateAlarm" }),
+        );
 };
 
 onPageOpen();

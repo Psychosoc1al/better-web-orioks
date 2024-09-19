@@ -112,7 +112,7 @@ const getAllInformation = () =>
                         (newOriginalSchedule) => {
                             return {
                                 group: newGroup,
-                                isExamsTime: newIsExamsTime,
+                                isExamsTime: false,
                                 originalSchedule: newOriginalSchedule,
                                 countedSchedule:
                                     JSON.stringify(newOriginalSchedule) ===
@@ -505,25 +505,27 @@ const runUpdate = () => {
         });
 };
 
-metabrowser.runtime.onInstalled.addListener(() =>
+/**
+ * Sets the schedule update alarm if needed
+ */
+const setUpdateAlarm = () =>
     metabrowser.alarms
         .get("checkUpdates")
         .then((alarm) => {
-            if (alarm) return;
+            if (alarm) throw new Error();
 
-            // noinspection JSIgnoredPromiseFromCall
             metabrowser.alarms.create("checkUpdates", { periodInMinutes: 360 });
         })
         .then(() => saveKeyValue("info", undefined))
-        .then(() => runUpdate()),
-);
+        .then(() => runUpdate())
+        .catch(() => ({}));
+
+metabrowser.runtime.onInstalled.addListener(() => setUpdateAlarm());
+metabrowser.runtime.onMessage.addListener((request) => {
+    if (request.action === "checkUpdates") runUpdate();
+    else if (request.action === "setUpdateAlarm") setUpdateAlarm();
+});
+
 metabrowser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "checkUpdates") runUpdate();
 });
-metabrowser.runtime.onMessage.addListener((request) => {
-    if (request.action === "checkUpdates") runUpdate();
-});
-
-// DEBUG:
-// metabrowser.storage.local.clear();
-// metabrowser.storage.local.get().then((data) => console.log(data));
