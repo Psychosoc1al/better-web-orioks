@@ -11,6 +11,50 @@ const centerModalVertically = function (modalDialog) {
 };
 
 /**
+ * Loads the full news into the modal dialog.
+ *
+ * @param {HTMLElement} newsModal - the modal dialog element
+ */
+const loadFullNews = function (newsModal) {
+    const dest = newsModal.querySelector("div.modal-body");
+    const newsLink =
+        origin + newsModal.querySelector(".modal-title a").getAttribute("href");
+
+    dest.classList.remove("fade", "in");
+    dest.classList.add("fade");
+
+    while (dest.firstChild) dest.removeChild(dest.firstChild);
+    centerModalVertically(newsModal);
+
+    const loadPlaceholder = document.createElement("h2");
+    loadPlaceholder.classList.add("text-center");
+    loadPlaceholder.innerHTML = "Загрузка...";
+    dest.appendChild(loadPlaceholder);
+
+    fetch(newsLink)
+        .then((resp) => resp.text())
+        .then((text) => {
+            loadPlaceholder.classList.add("fade");
+
+            return new DOMParser().parseFromString(text, "text/html");
+        })
+        .then((newsPage) => {
+            const children = newsPage.documentElement.querySelector(
+                "div.container div.margin-top",
+            ).children;
+
+            dest.removeChild(loadPlaceholder);
+            for (const child of children)
+                dest.appendChild(child.cloneNode(true));
+        })
+        .then(() => {
+            dest.classList.add("in");
+
+            centerModalVertically(newsModal);
+        });
+};
+
+/**
  * Observes the parent element of the modal dialog and centers it vertically.
  *
  * @param {HTMLElement} modalDialog - the modal dialog element
@@ -19,8 +63,19 @@ const observeModalParent = function (modalDialog) {
     const parentElement = modalDialog.parentElement;
 
     const observer = new MutationObserver(() => {
-        if (parentElement.style.display !== "none") 
+        const modalState = parentElement.style.display;
+
+        if (modalState !== "none") {
             centerModalVertically(modalDialog);
+
+            if (
+                parentElement.id === "postViewModal" &&
+                this.previousModalState !== modalState
+            )
+                loadFullNews(modalDialog);
+        }
+
+        this.previousModalState = modalState;
     });
 
     observer.observe(parentElement, {
