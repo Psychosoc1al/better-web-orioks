@@ -1,6 +1,5 @@
 let metabrowser = chrome;
 try {
-    // noinspection JSUnresolvedReference
     metabrowser = browser;
 } catch (e) {}
 const hourLength = 1000 * 60 * 60;
@@ -174,7 +173,6 @@ const setExamsSchedule = () => {
         const dayDateTime = new Date(day[1]);
 
         if (currentDateTime - 2 * hourLength < dayDateTime) {
-            // noinspection JSUnresolvedReference
             day.unshift(
                 dayDateTime.toLocaleDateString("ru", timeConvertOptions) +
                     getTimeLeftString(currentDateTime, dayDateTime),

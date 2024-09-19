@@ -1,6 +1,5 @@
 let metabrowser = chrome;
 try {
-    // noinspection JSUnresolvedReference
     metabrowser = browser;
 } catch (e) {}
 const hourLengthInMS = 1000 * 60 * 60;
@@ -33,8 +32,8 @@ const loadValueByKey = (key) =>
  * @param {string} group - The group to get schedule if needed
  * @return {Promise<string>} A promise that resolves with the response text
  */
-const sendRequest = (url, method, group = "") => {
-    return fetch(url, {
+const sendRequest = (url, method, group = "") =>
+    fetch(url, {
         method: method,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -43,7 +42,6 @@ const sendRequest = (url, method, group = "") => {
         body: group ? `group=${group}` : undefined,
         credentials: "include",
     }).then((response) => response.text());
-};
 
 /**
  * Gets the group by sending a request and saving the basic information to process
@@ -51,77 +49,85 @@ const sendRequest = (url, method, group = "") => {
  * @return {Promise<Object>} The object containing all the needed information
  */
 const getAllInformation = () =>
-    loadValueByKey("info").then((info) => {
-        return sendRequest(
-            "https://orioks.miet.ru/student/student",
-            "GET",
-        ).then((responseText) => {
-            const newGroup = /selected>([А-Я]+-\d\d[А-Я]*)/.exec(
-                responseText,
-            )[1];
-            const newSchedule = JSON.parse(
-                /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
-            );
-            const newIsExamsTime =
-                !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
-                newSchedule["dises"].some((element) => element["date_exam"]);
-            const subjects = newSchedule["dises"].map(
-                (element) => element["name"],
-            );
-
-            if (info?.isSemesterChange && newIsExamsTime) {
-                const semesterCheckString =
-                    new Date().getMonth() < 6 ? "Весенний" : "Осенний";
-
-                return getNewSchedule(newGroup).then((newOriginalSchedule) =>
-                    newOriginalSchedule["Semestr"].includes(semesterCheckString)
-                        ? {
-                              group: newGroup,
-                              isExamsTime: true,
-                              originalSchedule: newOriginalSchedule,
-                              countedSchedule:
-                                  JSON.stringify(newOriginalSchedule) ===
-                                  JSON.stringify(info.originalSchedule)
-                                      ? info.countedSchedule
-                                      : undefined,
-                              isSemesterChange: true,
-                              forcedExamsTime: false,
-                              subjects: subjects,
-                          }
-                        : info,
+    loadValueByKey("info").then((info) =>
+        sendRequest("https://orioks.miet.ru/student/student", "GET").then(
+            (responseText) => {
+                const newGroup = /selected>([А-Я]+-\d\d[А-Я]*)/.exec(
+                    responseText,
+                )[1];
+                const newSchedule = JSON.parse(
+                    /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
                 );
-            } else if (newIsExamsTime)
-                return {
-                    group: newGroup,
-                    isExamsTime: newIsExamsTime,
-                    originalSchedule: newSchedule,
-                    countedSchedule:
-                        JSON.stringify(newSchedule) ===
-                        JSON.stringify(info?.originalSchedule)
-                            ? info.countedSchedule
-                            : undefined,
-                    isSemesterChange: false,
-                    forcedExamsTime: true,
-                    subjects: subjects,
-                };
-            else
-                return getNewSchedule(newGroup).then((newOriginalSchedule) => {
+                const newIsExamsTime =
+                    !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
+                    newSchedule["dises"].some(
+                        (element) => element["date_exam"],
+                    );
+                const subjects = newSchedule["dises"].map(
+                    (element) => element["name"],
+                );
+
+                if (info?.isSemesterChange && newIsExamsTime) {
+                    const semesterCheckString =
+                        new Date().getMonth() < 6 ? "Весенний" : "Осенний";
+
+                    return getNewSchedule(newGroup).then(
+                        (newOriginalSchedule) =>
+                            newOriginalSchedule["Semestr"].includes(
+                                semesterCheckString,
+                            )
+                                ? {
+                                      group: newGroup,
+                                      isExamsTime: true,
+                                      originalSchedule: newOriginalSchedule,
+                                      countedSchedule:
+                                          JSON.stringify(
+                                              newOriginalSchedule,
+                                          ) ===
+                                          JSON.stringify(info.originalSchedule)
+                                              ? info.countedSchedule
+                                              : undefined,
+                                      isSemesterChange: true,
+                                      forcedExamsTime: false,
+                                      subjects: subjects,
+                                  }
+                                : info,
+                    );
+                } else if (newIsExamsTime)
                     return {
                         group: newGroup,
                         isExamsTime: newIsExamsTime,
-                        originalSchedule: newOriginalSchedule,
+                        originalSchedule: newSchedule,
                         countedSchedule:
-                            JSON.stringify(newOriginalSchedule) ===
+                            JSON.stringify(newSchedule) ===
                             JSON.stringify(info?.originalSchedule)
                                 ? info.countedSchedule
                                 : undefined,
                         isSemesterChange: false,
-                        forcedExamsTime: false,
+                        forcedExamsTime: true,
                         subjects: subjects,
                     };
-                });
-        });
-    });
+                else
+                    return getNewSchedule(newGroup).then(
+                        (newOriginalSchedule) => {
+                            return {
+                                group: newGroup,
+                                isExamsTime: newIsExamsTime,
+                                originalSchedule: newOriginalSchedule,
+                                countedSchedule:
+                                    JSON.stringify(newOriginalSchedule) ===
+                                    JSON.stringify(info?.originalSchedule)
+                                        ? info.countedSchedule
+                                        : undefined,
+                                isSemesterChange: false,
+                                forcedExamsTime: false,
+                                subjects: subjects,
+                            };
+                        },
+                    );
+            },
+        ),
+    );
 
 /**
  * Gets the schedule by sending a request and passing the protection(?) with setting the cookie
@@ -129,8 +135,8 @@ const getAllInformation = () =>
  * @param {string} group - The group to get schedule for
  * @return {Promise<Object>} A JSON object containing the schedule
  */
-const getNewSchedule = (group) => {
-    return sendRequest("https://miet.ru/schedule/data", "POST", group)
+const getNewSchedule = (group) =>
+    sendRequest("https://miet.ru/schedule/data", "POST", group)
         .then((responseText) => {
             const cookie = /wl=(.*);path=\//.exec(responseText);
             if (!cookie) return Promise.resolve(responseText);
@@ -146,7 +152,6 @@ const getNewSchedule = (group) => {
                 );
         })
         .then((responseText) => JSON.parse(responseText));
-};
 
 /**
  * Counts the full schedule cycle and saves it
@@ -337,8 +342,8 @@ const parseSchedule = () => {
         }
 
         parsedElement["name"] = `${lessonName}
-                                 ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
-        //
+                                ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
+
         parsedElement["type"] =
             lessonType === "Лек"
                 ? "Лекция"
@@ -476,7 +481,6 @@ const runUpdate = () => {
                         ? countExamsSchedule()
                         : countSchedule(parseSchedule());
 
-            // noinspection JSUnresolvedReference
             if (
                 infoObject?.originalSchedule?.dises &&
                 infoObject.countedSchedule.slice(-1)[0][1] < Date.now()
