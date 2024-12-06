@@ -341,6 +341,8 @@ const parseSchedule = () => {
             if (!infoObject.subjects.includes(lessonName)) continue;
         }
 
+        if (lessonName.includes("Практическая подготовка")) continue;
+
         parsedElement["name"] = `${lessonName}
                                 ► ${scheduleElement["Class"]["TeacherFull"]}\n`;
 
@@ -371,15 +373,6 @@ const parseSchedule = () => {
 
         parsedElement["time"] =
             `${parsedElement["startTime"]}\n ~ \n${parsedElement["endTime"]}`;
-
-        if (
-            parsedElement["location"].includes(
-                "Аудитория практической подготовки",
-            )
-        ) {
-            parsedElement["location"] = "Предприятие / кафедра";
-            parsedElement["type"] = "Практика";
-        }
 
         parsedSchedule.push(parsedElement);
     }
