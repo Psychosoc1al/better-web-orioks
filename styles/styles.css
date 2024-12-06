@@ -253,7 +253,7 @@ div.badge {
 }
 
 body {
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 div.panel.panel-default.ng-scope {
