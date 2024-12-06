@@ -1,15 +1,28 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "Better web-ORIOKS",
     "version": "0.9.10",
     "description": "Улучшение веб-версии ОРИОКС: доработка подсчёта баллов, расписания и дизайна",
+    "browser_specific_settings": {
+        "gecko": {
+            "strict_min_version": "90.0"
+        },
+        "gecko_android": {
+            "strict_min_version": "113.0"
+        }
+    },
+    "developer": {
+        "name": "Psychosoc1al",
+        "url": "https://github.com/Psychosoc1al/better-web-orioks"
+    },
     "icons": {
         "48": "icons/icon-48.png",
         "96": "icons/icon-96.png",
         "128": "icons/icon-128.png"
     },
     "background": {
-        "service_worker": "background_scripts/scheduleProcessing.js"
+        "scripts": ["background_scripts/scheduleProcessing.js"],
+        "persistent": true
     },
     "content_scripts": [
         {
@@ -19,8 +32,10 @@
             "run_at": "document_start"
         }
     ],
-    "permissions": ["alarms", "cookies", "storage"],
-    "host_permissions": [
+    "permissions": [
+        "alarms",
+        "cookies",
+        "storage",
         "https://miet.ru/schedule/data",
         "https://orioks.miet.ru/student/student"
     ]
