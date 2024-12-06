@@ -268,3 +268,7 @@ div.panel.panel-default.ng-scope {
 div#postViewModal div.row {
     display: none;
 }
+
+div#to_top {
+    display: none;
+}
