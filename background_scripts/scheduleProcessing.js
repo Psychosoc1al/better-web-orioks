@@ -151,7 +151,13 @@ const getNewSchedule = (group) =>
                     sendRequest("https://miet.ru/schedule/data", "POST", group),
                 );
         })
-        .then((responseText) => JSON.parse(responseText));
+        .then((responseText) => {
+            try {
+                return JSON.parse(responseText);
+            } catch {
+                return { Semestr: [] };
+            }
+        });
 
 /**
  * Counts the full schedule cycle and saves it
