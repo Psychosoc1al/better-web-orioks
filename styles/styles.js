@@ -16,6 +16,7 @@ const centerModalVertically = function (modalDialog) {
  * @param {HTMLElement} newsModal - the modal dialog element
  */
 const loadFullNews = function (newsModal) {
+    const title = newsModal.querySelector("h2.modal-title");
     const dest = newsModal.querySelector("div.modal-body");
     const newsLink =
         origin + newsModal.querySelector(".modal-title a").getAttribute("href");
@@ -39,9 +40,14 @@ const loadFullNews = function (newsModal) {
             return new DOMParser().parseFromString(text, "text/html");
         })
         .then((newsPage) => {
+            const metadata = Array.from(
+                newsPage.documentElement.querySelectorAll("h4"),
+            ).slice(0, 2);
             const children = newsPage.documentElement.querySelector(
                 "div.container div.margin-top",
             ).children;
+
+            title.after(...metadata);
 
             dest.removeChild(loadPlaceholder);
             for (const child of children)
