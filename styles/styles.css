@@ -240,6 +240,7 @@ table.minicalendar td.day {
     border-radius: 3px;
 }
 
+/*Other*/
 div.modal {
     backdrop-filter: blur(5px);
 }
@@ -253,6 +254,10 @@ div.badge {
 }
 
 body {
+    overflow-wrap: break-word;
+}
+
+div.modal-body .table > tbody > tr > td {
     overflow-wrap: anywhere;
 }
 
