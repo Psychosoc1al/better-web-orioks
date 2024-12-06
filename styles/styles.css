@@ -253,6 +253,10 @@ div.badge {
 }
 
 body {
+    overflow-wrap: break-word;
+}
+
+.table > tbody > tr > td {
     overflow-wrap: anywhere;
 }
 
