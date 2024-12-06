@@ -47,7 +47,10 @@ const loadFullNews = function (newsModal) {
                 "div.container div.margin-top",
             ).children;
 
-            title.after(...metadata);
+            title.parentElement
+                .querySelectorAll("div.modal-header h4:not([class])")
+                .forEach((elem) => elem.remove())
+                .then(() => title.after(...metadata));
 
             dest.removeChild(loadPlaceholder);
             for (const child of children)
