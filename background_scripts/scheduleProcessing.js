@@ -58,14 +58,15 @@ const getAllInformation = () =>
                 const newSchedule = JSON.parse(
                     /id=["']forang["'].*>(.*)<\/div>/.exec(responseText)[1],
                 );
-                const newIsExamsTime =
-                    !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
-                    newSchedule["dises"].some(
-                        (element) => element["date_exam"],
-                    );
                 const subjects = newSchedule["dises"].map(
                     (element) => element["name"],
                 );
+                let newIsExamsTime =
+                    !!/<\/span> Сессия<\/a><\/li>/.exec(responseText) ||
+                    (newSchedule["dises"].some((elem) => elem["date_exam"]) &&
+                        /<\/span> (\d{2}) неделя<br>/
+                            .exec(responseText)
+                            ?.at(1) > 17);
 
                 if (info?.isSemesterChange && newIsExamsTime) {
                     const semesterCheckString =
