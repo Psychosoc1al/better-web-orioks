@@ -417,7 +417,7 @@ const countExamsSchedule = () => {
             [
                 {
                     name: `${examName}\n` + teachersString,
-                    type: "Конс",
+                    type: "Консультация",
                     location: element["room_cons"],
                     time: element["time_cons"],
                 },
@@ -429,7 +429,7 @@ const countExamsSchedule = () => {
             [
                 {
                     name: `${examName}\n` + teachersString,
-                    type: "Экз",
+                    type: "Экзамен",
                     location: element["room_exam"],
                     time: element["time_exam"],
                 },
