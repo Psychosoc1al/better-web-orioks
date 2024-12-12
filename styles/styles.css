@@ -64,6 +64,7 @@ span[style="width: auto"] {
 select.input-sm,
 select,
 input,
+input[id^="testform-answer-"],
 textarea,
 a.list-group-item,
 button,
