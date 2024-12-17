@@ -262,9 +262,9 @@ const showUpdatingMessage = () => {
                 style="font-size: small">Перезагрузить</a>
                 <br/><br/>
                 <p>Если же даже после нескольких перезагрузок не становится лучше,
-                а на <a href="https://miet.ru/schedule">сайте</a> расписание есть, 
+                а на <a href="https://miet.ru/schedule" target="_blank">сайте</a> расписание есть, 
                 то это явно что-то нездоровое, и буду благодарен, если 
-                <a href="https://github.com/Psychosoc1al/better-web-orioks/issues">
+                <a href="https://github.com/Psychosoc1al/better-web-orioks/issues" target="_blank">
                 сообщите об ошибке</a></p>`),
     );
 };
