@@ -21,29 +21,24 @@ const loadFullNews = function (newsModal) {
     const newsLink =
         origin + newsModal.querySelector(".modal-title a").getAttribute("href");
 
-    dest.classList.remove("fade", "in");
-    dest.classList.add("fade");
-
     while (dest.firstChild) dest.removeChild(dest.firstChild);
-    centerModalVertically(newsModal);
 
     const loadPlaceholder = document.createElement("h2");
     loadPlaceholder.classList.add("text-center");
-    loadPlaceholder.innerHTML = "Загрузка...";
+    loadPlaceholder.textContent = "Загрузка...";
     dest.appendChild(loadPlaceholder);
+
+    centerModalVertically(newsModal);
 
     fetch(newsLink)
         .then((resp) => resp.text())
-        .then((text) => {
-            loadPlaceholder.classList.add("fade");
-
-            return new DOMParser().parseFromString(text, "text/html");
-        })
+        .then((text) => new DOMParser().parseFromString(text, "text/html"))
         .then((newsPage) => {
-            const metadata = Array.from(
-                newsPage.documentElement.querySelectorAll("h4"),
-            ).slice(0, 2);
-            const children = newsPage.documentElement.querySelector(
+            const metadata = Array.from(newsPage.querySelectorAll("h4")).slice(
+                0,
+                2,
+            );
+            const children = newsPage.querySelector(
                 "div.container div.margin-top",
             ).children;
 
@@ -52,14 +47,23 @@ const loadFullNews = function (newsModal) {
                 .forEach((elem) => elem.remove());
             title.after(...metadata);
 
-            dest.removeChild(loadPlaceholder);
+            const fragment = document.createDocumentFragment();
             for (const child of children)
-                dest.appendChild(child.cloneNode(true));
-        })
-        .then(() => {
-            dest.classList.add("in");
+                fragment.appendChild(child.cloneNode(true));
 
-            centerModalVertically(newsModal);
+            loadPlaceholder.classList.add("fade");
+            loadPlaceholder.addEventListener(
+                "transitionend",
+                () => {
+                    dest.removeChild(loadPlaceholder);
+
+                    dest.appendChild(fragment);
+                    centerModalVertically(newsModal);
+                },
+                {
+                    once: true,
+                },
+            );
         });
 };
 
