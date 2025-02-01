@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Better web-ORIOKS",
-    "version": "0.9.14",
+    "version": "0.9.15",
     "description": "Улучшение веб-версии ОРИОКС: доработка подсчёта баллов, расписания и дизайна",
     "browser_specific_settings": {
         "gecko": {
@@ -21,14 +21,23 @@
         "128": "icons/icon-128.png"
     },
     "background": {
-        "scripts": ["background_scripts/scheduleProcessing.js"],
+        "scripts": [
+            "background_scripts/scheduleProcessing.js"
+        ],
         "persistent": true
     },
     "content_scripts": [
         {
-            "matches": ["https://orioks.miet.ru/*"],
-            "js": ["content_scripts/main.js", "styles/styles.js"],
-            "css": ["styles/styles.css"],
+            "matches": [
+                "https://orioks.miet.ru/*"
+            ],
+            "js": [
+                "content_scripts/main.js",
+                "styles/styles.js"
+            ],
+            "css": [
+                "styles/styles.css"
+            ],
             "run_at": "document_start"
         }
     ],

@@ -41,6 +41,7 @@ const sendRequest = (url, method, group = "") =>
         },
         body: group ? `group=${group}` : undefined,
         credentials: "include",
+        signal: AbortSignal.timeout(15_000),
     }).then((response) => response.text());
 
 /**
@@ -110,21 +111,24 @@ const getAllInformation = () =>
                     };
                 else
                     return getNewSchedule(newGroup).then(
-                        (newOriginalSchedule) => {
-                            return {
-                                group: newGroup,
-                                isExamsTime: false,
-                                originalSchedule: newOriginalSchedule,
-                                countedSchedule:
-                                    JSON.stringify(newOriginalSchedule) ===
-                                    JSON.stringify(info?.originalSchedule)
-                                        ? info.countedSchedule
-                                        : undefined,
-                                isSemesterChange: false,
-                                forcedExamsTime: false,
-                                subjects: subjects,
-                            };
-                        },
+                        (newOriginalSchedule) =>
+                            newOriginalSchedule["Semestr"][0]
+                                ? {
+                                      group: newGroup,
+                                      isExamsTime: false,
+                                      originalSchedule: newOriginalSchedule,
+                                      countedSchedule:
+                                          JSON.stringify(
+                                              newOriginalSchedule,
+                                          ) ===
+                                          JSON.stringify(info?.originalSchedule)
+                                              ? info.countedSchedule
+                                              : undefined,
+                                      isSemesterChange: false,
+                                      forcedExamsTime: false,
+                                      subjects: subjects,
+                                  }
+                                : info,
                     );
             },
         ),
@@ -496,6 +500,7 @@ const runUpdate = () => {
                 return;
             }
 
+            console.log(infoObject);
             saveKeyValue("info", infoObject);
         })
         .catch((e) => {
