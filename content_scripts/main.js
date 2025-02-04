@@ -286,18 +286,19 @@ const onPageOpen = () => {
             if (infoObject?.isSemesterChange && !currentWeekElement) {
                 const today = new Date();
                 const september1st = new Date(today.getFullYear(), 8, 1);
-                const isSeptember1stOnThisWeek =
-                    today.getMonth() === 7 &&
-                    today.getDay() < september1st.getDay() &&
-                    today.getDate() > 25;
+                const is1stSemesterDayOnThisWeek =
+                    (today.getMonth() === 7 &&
+                        today.getDay() < september1st.getDay() &&
+                        today.getDate() > 25) ||
+                    today.getMonth() < 2;
 
                 setSchedule(
                     {
-                        innerText: isSeptember1stOnThisWeek
+                        innerText: is1stSemesterDayOnThisWeek
                             ? "1 числитель"
                             : "2 знаменатель",
                     },
-                    isSeptember1stOnThisWeek,
+                    is1stSemesterDayOnThisWeek,
                 );
 
                 return false;
